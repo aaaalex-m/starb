@@ -2,12 +2,41 @@
 
 Cumulative jargon glossary. Each module's lecture notes define their terms in context; this file collects them alphabetically. The module that introduces a term is in brackets.
 
+- **Adjusted close** [M1]: the close back-adjusted for splits and dividends, so that its day-to-day ratios are total returns.
+- **Alpha** [M1]: the part of an asset's average return not explained by its exposure to the benchmark.
+- **Annualise** [M1]: convert a daily statistic to yearly units: mean × 252, volatility × $\sqrt{252}$.
 - **Backtest** [M0]: a simulation of how a trading rule would have performed on historical data.
 - **Basis point (bp)** [M0]: one hundredth of a percent, $10^{-4}$. Costs are quoted in bp.
+- **Benchmark** [M1]: a reference portfolio, usually the market index.
+- **Beta** [M1]: an asset's sensitivity to the benchmark, $\operatorname{Cov}(R_i, R_m)/\operatorname{Var}(R_m)$.
+- **Bid / ask / spread / mid** [M1]: best price a buyer will pay / best price a seller will accept / their gap (a trading cost) / their average.
 - **Close-to-close** [M0]: returns measured from one day's closing price to the next day's.
 - **Continuous integration (CI)** [M0]: a server that re-runs lint and tests on a clean machine on every change.
+- **Corporate action** [M1]: a company event that changes the share price but not holders' wealth (split, dividend).
+- **Dividend / ex-dividend date** [M1]: cash paid per share / the first day a buyer no longer receives it, when the price drops by about the dividend.
+- **Dollar-neutral** [M1]: long and short positions have equal dollar size.
+- **ETF (exchange-traded fund)** [M1]: a fund holding a basket of assets that trades like a single stock (e.g. SPY, XLE).
+- **Excess return / risk-free rate** [M1]: return minus the risk-free rate / the return on short-term government debt.
+- **Fat tails** [M1]: extreme moves occur far more often than a Gaussian predicts (positive excess kurtosis).
+- **Index** [M1]: a rule-based basket used as a benchmark (e.g. S&P 500); not directly tradable.
+- **Kurtosis / excess kurtosis** [M1]: the fourth standardised moment, a measure of tail weight / kurtosis minus 3 (zero for a Gaussian).
+- **Liquidity** [M1]: how easily an asset can be traded without moving its price.
 - **Lockfile** [M0]: the exact versions of every package the project was tested with (`uv.lock`).
+- **Log return** [M1]: $r_t = \ln(P_t/P_{t-1})$; adds over time.
+- **Long / short** [M1]: own an asset and profit if it rises / borrow and sell it and profit if it falls.
 - **Look-ahead bias** [M0]: using information in a backtest that would not have been available at decision time.
+- **Market capitalisation** [M1]: share price × number of shares outstanding.
+- **Market-neutral / beta-neutral** [M1]: the book's net sensitivity to the market is zero.
+- **Notional** [M1]: the dollar size of a position.
+- **OHLCV** [M1]: open, high, low, close, volume; the contents of a daily price bar.
 - **Parquet** [M0]: a compressed, column-oriented table format used for the local data cache.
+- **Price return / total return** [M1]: return from price changes only / including reinvested dividends.
+- **Simple return** [M1]: $R_t = P_t/P_{t-1} - 1$; adds across assets in a portfolio.
+- **Skewness** [M1]: the third standardised moment, a measure of asymmetry; negative means bigger crashes than rallies.
+- **Stock / share / equity; ticker** [M1]: a unit of ownership in a company; its trading symbol (e.g. KO).
+- **Stock split** [M1]: each share becomes $k$ shares at $1/k$ of the price.
 - **Trading day** [M0]: a day the exchange is open; about 252 per year in the US.
 - **Unit test** [M0]: a small automatic check that a function gives the right answer on a case with a known answer.
+- **Volatility** [M1]: the standard deviation of returns, usually annualised.
+- **Volatility clustering** [M1]: large moves tend to be followed by large moves; volatility varies over time.
+- **Volatility drag** [M1]: compound growth falls short of the average simple return by about $\sigma^2/2$.
