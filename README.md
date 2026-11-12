@@ -17,7 +17,7 @@ A word on expectations: simple pairs strategies on liquid US stocks have mostly 
 | # | Module | `statarb` code | Status |
 |---|---|---|---|
 | 0 | [Setup and tooling](modules/00-setup/lecture.md) | skeleton, `config`, CI | done |
-| 1 | Markets, prices and returns | `data`, `returns` | next |
+| 1 | [Markets, prices and returns](modules/01-returns/lecture.md) | `data`, `returns` | done |
 | 2 | Data pitfalls: survivorship and look-ahead bias | `universe`, `data.clean_prices` | |
 | 3 | Statistics toolkit: random walks, stationarity, regression | `simulate`, `stats` | |
 | 4 | Distance-method pairs trading (Gatev et al. 2006) | `pairs.distance`, `signals` | |

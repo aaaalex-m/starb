@@ -47,8 +47,9 @@ extend-exclude = ["*.ipynb"]
 select = ["E", "F", "W", "I", "B", "UP", "NPY", "PD", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
-# Notebooks import mid-file and print for display.
-"modules/**" = ["E402", "B018"]
+# Notebooks import mid-file and show bare expressions; their markdown cells are comments with
+# long LaTeX lines and typographic dashes.
+"modules/**" = ["E402", "B018", "E501", "RUF003"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
