@@ -171,3 +171,91 @@ def unadjust_splits(close: pd.Series, splits: pd.Series) -> pd.Series:
     for date, ratio in ratios.items():
         factor[close.index < date] *= ratio
     return close * factor
+
+
+def clean_prices(prices: pd.DataFrame, max_ffill: int = 3) -> pd.DataFrame:
+    """Align and lightly repair a wide price table (dates x tickers).
+
+    * sorts the dates and drops duplicate dates (keeping the last);
+    * treats non-positive prices as missing;
+    * drops dates on which no ticker has a price (holidays on every calendar involved);
+    * forward-fills at most ``max_ffill`` consecutive missing prices. Nothing is filled before
+      a ticker's first price; longer gaps stay NaN after the first ``max_ffill`` days.
+
+    Forward-filling is causal (it only uses the past), unlike interpolation or back-filling,
+    which would leak future prices. Restricting the fill to gaps *between* two prices
+    (pandas' ``limit_area="inside"``) would also leak: on the day a price goes missing you
+    can't know whether another one will ever come (a halt or a delisting). So the last price
+    of a delisted ticker is carried for up to ``max_ffill`` days, as a live system would see
+    it. Each filled day is a zero return, so keep the limit small.
+    """
+    cleaned = prices.sort_index()
+    cleaned = cleaned[~cleaned.index.duplicated(keep="last")]
+    cleaned = cleaned.where(cleaned > 0)
+    cleaned = cleaned.dropna(how="all")
+    return cleaned.ffill(limit=max_ffill)
+
+
+def _longest_run(mask: pd.Series) -> int:
+    """Length of the longest run of consecutive True values."""
+    if not mask.any():
+        return 0
+    run_id = (~mask).cumsum()
+    return int(mask.groupby(run_id).sum().max())
+
+
+def flag_returns(prices: pd.DataFrame, threshold: float = 0.5) -> pd.DataFrame:
+    """Daily moves larger than ``threshold`` in absolute value (default 50%), largest first.
+
+    Returns are computed between consecutive *available* prices of each ticker, so a gap in
+    the data doesn't hide a jump. A flagged move is not necessarily wrong, but each one should
+    be explained (bad tick, missed split, takeover, bankruptcy) before the data is trusted.
+    """
+    rows = []
+    for ticker in prices.columns:
+        series = prices[ticker].dropna()
+        ret = series / series.shift(1) - 1
+        for date in ret.index[ret.abs() > threshold]:
+            loc = series.index.get_loc(date)
+            rows.append((date, ticker, ret[date], series.iloc[loc - 1], series.iloc[loc]))
+    flags = pd.DataFrame(rows, columns=["date", "ticker", "return", "prev_price", "price"])
+    return flags.sort_values("return", key=abs, ascending=False, ignore_index=True)
+
+
+def sanity_report(
+    prices: pd.DataFrame, max_abs_return: float = 0.5, volume: pd.DataFrame | None = None
+) -> pd.DataFrame:
+    """One row per ticker summarising data quality.
+
+    Columns: first and last date with a price, number of prices, missing prices inside the
+    ticker's life, longest such gap, longest run of unchanged prices (a sign of stale data),
+    number of non-positive prices, the largest absolute daily return, and the number of daily
+    moves beyond ``max_abs_return``. If a matching ``volume`` table is given, also the number
+    of priced days with zero volume (the price did not come from a trade that day).
+    """
+    rows = {}
+    for ticker in prices.columns:
+        series = prices[ticker]
+        first, last = series.first_valid_index(), series.last_valid_index()
+        if first is None:
+            rows[ticker] = {"n_prices": 0}
+            continue
+        life = series.loc[first:last]
+        valid = life.dropna()
+        ret = valid / valid.shift(1) - 1
+        rows[ticker] = {
+            "first_date": first,
+            "last_date": last,
+            "n_prices": len(valid),
+            "missing_inside": int(life.isna().sum()),
+            "longest_gap": _longest_run(life.isna()),
+            "longest_flat_run": _longest_run(valid.diff() == 0),
+            "n_nonpositive": int((valid <= 0).sum()),
+            "max_abs_return": float(ret.abs().max()) if len(ret) > 1 else np.nan,
+            "n_big_moves": int((ret.abs() > max_abs_return).sum()),
+        }
+        if volume is not None and ticker in volume:
+            rows[ticker]["zero_volume_days"] = int((volume[ticker].reindex(valid.index) == 0).sum())
+    report = pd.DataFrame.from_dict(rows, orient="index")
+    report.index.name = "ticker"
+    return report

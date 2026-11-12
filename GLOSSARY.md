@@ -5,6 +5,7 @@ Cumulative jargon glossary. Each module's lecture notes define their terms in co
 - **Adjusted close** [M1]: the close back-adjusted for splits and dividends, so that its day-to-day ratios are total returns.
 - **Alpha** [M1]: the part of an asset's average return not explained by its exposure to the benchmark.
 - **Annualise** [M1]: convert a daily statistic to yearly units: mean × 252, volatility × $\sqrt{252}$.
+- **Backfill bias** [M2]: history added retroactively when a series enters a database, and only for series that survived long enough to be added.
 - **Backtest** [M0]: a simulation of how a trading rule would have performed on historical data.
 - **Basis point (bp)** [M0]: one hundredth of a percent, $10^{-4}$. Costs are quoted in bp.
 - **Benchmark** [M1]: a reference portfolio, usually the market index.
@@ -13,11 +14,16 @@ Cumulative jargon glossary. Each module's lecture notes define their terms in co
 - **Close-to-close** [M0]: returns measured from one day's closing price to the next day's.
 - **Continuous integration (CI)** [M0]: a server that re-runs lint and tests on a clean machine on every change.
 - **Corporate action** [M1]: a company event that changes the share price but not holders' wealth (split, dividend).
+- **Delisting / delisting return** [M2]: removal from an exchange (bankruptcy, merger, takeover) / the return from the last trade to what holders finally received, often missing from databases.
 - **Dividend / ex-dividend date** [M1]: cash paid per share / the first day a buyer no longer receives it, when the price drops by about the dividend.
 - **Dollar-neutral** [M1]: long and short positions have equal dollar size.
+- **Equal-weight portfolio** [M2]: the same dollar amount in every asset, periodically rebalanced back to equal weights.
 - **ETF (exchange-traded fund)** [M1]: a fund holding a basket of assets that trades like a single stock (e.g. SPY, XLE).
 - **Excess return / risk-free rate** [M1]: return minus the risk-free rate / the return on short-term government debt.
 - **Fat tails** [M1]: extreme moves occur far more often than a Gaussian predicts (positive excess kurtosis).
+- **Forward fill** [M2]: carrying the last known price forward over a gap; causal, unlike back-filling or interpolation.
+- **GICS** [M2]: Global Industry Classification Standard, the sector and industry labels used by S&P and MSCI.
+- **Index reconstitution** [M2]: periodic changes to an index's membership.
 - **Index** [M1]: a rule-based basket used as a benchmark (e.g. S&P 500); not directly tradable.
 - **Kurtosis / excess kurtosis** [M1]: the fourth standardised moment, a measure of tail weight / kurtosis minus 3 (zero for a Gaussian).
 - **Liquidity** [M1]: how easily an asset can be traded without moving its price.
@@ -27,16 +33,27 @@ Cumulative jargon glossary. Each module's lecture notes define their terms in co
 - **Look-ahead bias** [M0]: using information in a backtest that would not have been available at decision time.
 - **Market capitalisation** [M1]: share price × number of shares outstanding.
 - **Market-neutral / beta-neutral** [M1]: the book's net sensitivity to the market is zero.
+- **Nonsynchronous trading** [M2]: prices of different assets or markets recorded at different times, creating spurious lead–lag relations.
 - **Notional** [M1]: the dollar size of a position.
 - **OHLCV** [M1]: open, high, low, close, volume; the contents of a daily price bar.
 - **Parquet** [M0]: a compressed, column-oriented table format used for the local data cache.
+- **Point-in-time data** [M2]: data exactly as it was known on each historical date (membership, prices including delisted securities, unrevised fundamentals).
 - **Price return / total return** [M1]: return from price changes only / including reinvested dividends.
+- **Recycled ticker** [M2]: an old ticker symbol reused by a different company.
+- **Selection bias** [M2]: distortion from a sample chosen in a way that is correlated with the outcome being measured.
 - **Simple return** [M1]: $R_t = P_t/P_{t-1} - 1$; adds across assets in a portfolio.
 - **Skewness** [M1]: the third standardised moment, a measure of asymmetry; negative means bigger crashes than rallies.
+- **Spin-off** [M2]: a company distributing shares of a subsidiary to its own shareholders; a frequent source of bad price adjustments.
+- **Stale price** [M2]: a price that didn't come from a trade that day, often a flat run with zero volume.
 - **Stock / share / equity; ticker** [M1]: a unit of ownership in a company; its trading symbol (e.g. KO).
 - **Stock split** [M1]: each share becomes $k$ shares at $1/k$ of the price.
+- **Survivorship bias** [M2]: testing only on assets that still exist today, silently dropping those that failed or disappeared.
+- **Ticker change** [M2]: the same company trading under a new symbol (e.g. FB → META).
+- **Trading calendar** [M2]: the days and hours an exchange is open, including holidays and half-days.
 - **Trading day** [M0]: a day the exchange is open; about 252 per year in the US.
+- **Truncation test** [M2]: a look-ahead check; a causal signal's past values don't change when future data is removed.
 - **Unit test** [M0]: a small automatic check that a function gives the right answer on a case with a known answer.
-- **Volatility** [M1]: the standard deviation of returns, usually annualised.
+- **Universe** [M2]: the set of assets a strategy is allowed to trade.
 - **Volatility clustering** [M1]: large moves tend to be followed by large moves; volatility varies over time.
 - **Volatility drag** [M1]: compound growth falls short of the average simple return by about $\sigma^2/2$.
+- **Volatility** [M1]: the standard deviation of returns, usually annualised.
