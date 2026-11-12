@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+      - name: Install (exactly as locked)
+        run: uv sync --locked
+      - name: Lint
+        run: uv run ruff check
+      - name: Format check
+        run: uv run ruff format --check
+      - name: Notebooks in sync with their paired .py files
+        run: |
+          for nb in modules/*/notebook.ipynb; do
+            uv run jupytext --to py:percent --output - "$nb" | diff -u "${nb%.ipynb}.py" -
+          done
+      - name: Tests (synthetic data only; network tests are deselected)
+        run: uv run pytest

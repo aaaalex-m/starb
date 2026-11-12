@@ -1,0 +1,56 @@
+[project]
+name = "statarb"
+version = "0.1.0"
+description = "A pedagogical statistical-arbitrage project: notebooks, lecture notes and a small tested package."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Alex" }]
+requires-python = ">=3.12"
+dependencies = [
+    "jupyterlab>=4.6.6",
+    "matplotlib>=3.11.2",
+    "networkx>=3.7",
+    "numpy>=2.5.4",
+    "pandas>=3.1.1",
+    "pyarrow>=26.0.1",
+    "scikit-learn>=1.9.1",
+    "scipy>=1.18.1",
+    "statsmodels>=0.15.0",
+    "yfinance>=1.8.0",
+]
+
+[project.optional-dependencies]
+hmm = ["hmmlearn>=0.3.3"]
+dl = ["torch>=2.15.0"]
+
+[dependency-groups]
+dev = [
+    "jupytext>=1.19.6",
+    "nbmake>=1.5.5",
+    "pre-commit>=4.7.0",
+    "pytest>=9.2.0",
+    "ruff>=0.17.4",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+# Notebooks are linted through their paired jupytext .py files.
+extend-exclude = ["*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "NPY", "PD", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# Notebooks import mid-file and print for display.
+"modules/**" = ["E402", "B018"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -m 'not network'"
+markers = ["network: needs internet access (deselected by default and never run in CI)"]

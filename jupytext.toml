@@ -1,0 +1,2 @@
+# Every notebook is paired with a percent-format .py file so diffs are readable.
+formats = "ipynb,py:percent"
