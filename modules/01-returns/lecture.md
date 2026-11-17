@@ -31,7 +31,7 @@ An **adjusted close** is the close rewritten backwards in time so that its ratio
 \text{split } k:\quad \times \frac{1}{k}, \qquad\qquad \text{dividend } D:\quad \times\Big(1 - \frac{D}{P_{t-1}}\Big).
 ```
 
-Then $P^{\text{adj}}_t / P^{\text{adj}}_{t-1} - 1$ is the true one-day return, including the dividend.
+Then $P_t^{\text{adj}} / P_{t-1}^{\text{adj}} - 1$ is the true one-day return, including the dividend.
 
 **Yahoo's conventions** (what `statarb.data` stores):
 
@@ -50,7 +50,7 @@ Two consequences. First, the *as-traded* price isn't in either column; `data.una
 R_t = \frac{P_t}{P_{t-1}} - 1 \quad\text{(simple)}, \qquad r_t = \ln\frac{P_t}{P_{t-1}} = \ln(1+R_t) \quad\text{(log)}.
 ```
 
-Expanding, $r = R - R^2/2 + R^3/3 - \dots$, so the two agree to first order and $r < R$ whenever $R \neq 0$. On a 1% day the gap is half a basis point; on a 10% day it is 50 bp.
+Expanding, $r = R - R^2/2 + R^3/3 - \dots$, so the two agree to first order and $r \lt R$ whenever $R \neq 0$. On a 1% day the gap is half a basis point; on a 10% day it is 50 bp.
 
 **Log returns add over time.** The total growth telescopes:
 
@@ -79,7 +79,7 @@ The same is *not* true of log returns, since $\ln$ of a weighted average is not 
 \mathbb E[r] \approx \mu - \tfrac{1}{2}\sigma^2 .
 ```
 
-Example: +50% then −50% averages 0% but loses 25%. Physicists will recognise this from geometric Brownian motion, $dP/P = \mu\,dt + \sigma\,dW$: Itô's lemma gives $d\ln P = (\mu - \sigma^2/2)\,dt + \sigma\,dW$, because $(dW)^2 = dt$ makes the second-order term survive.
+Example: +50% then −50% averages 0% but loses 25%. Physicists will recognise this from geometric Brownian motion, $dP/P = \mu dt + \sigma dW$: Itô's lemma gives $d\ln P = (\mu - \sigma^2/2) dt + \sigma dW$, because $(dW)^2 = dt$ makes the second-order term survive.
 
 ## 4. Volatility and annualisation
 
@@ -116,7 +116,7 @@ A Gaussian has skewness 0 and excess kurtosis 0. Daily equity returns from 2010�
 
 How fat? A Gaussian puts a 5σ day at probability $5.7 \times 10^{-7}$, about once every 7,000 years of trading. SPY had nine such days in 2010–2024 (one in August 2011, eight in spring 2020).
 
-*Physics link:* the tails of stock returns decay roughly as a power law, $P(|r| > x) \propto x^{-\alpha}$ with $\alpha \approx 3$, the "inverse cubic law" (Gopikrishnan et al., 1998). With $\alpha < 4$ the fourth moment formally diverges, so sample kurtosis is unstable: it is dominated by the few largest days and keeps growing as the sample grows. That is why CVX shows 27 and AAPL 5.
+*Physics link:* the tails of stock returns decay roughly as a power law, $P(\lvert r\rvert \gt x) \propto x^{-\alpha}$ with $\alpha \approx 3$, the "inverse cubic law" (Gopikrishnan et al., 1998). With $\alpha \lt 4$ the fourth moment formally diverges, so sample kurtosis is unstable: it is dominated by the few largest days and keeps growing as the sample grows. That is why CVX shows 27 and AAPL 5.
 
 **Why fat tails matter for stat arb:** a long/short book is hedged against *typical* co-movement. On extreme days correlations change, hedges break, and positions that are individually small can lose together. Gaussian risk estimates understate the probability of such days by orders of magnitude.
 

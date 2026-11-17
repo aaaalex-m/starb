@@ -200,7 +200,7 @@ growth.style.format("{:.0%}")
 # $$R_t = \frac{P_t}{P_{t-1}} - 1, \qquad r_t = \ln\frac{P_t}{P_{t-1}} = \ln(1 + R_t).$$
 #
 # Taylor-expanding, $r = R - R^2/2 + R^3/3 - \dots$, so the two agree to first order and
-# $r < R$ always (for $R \neq 0$).
+# $r \lt R$ always (for $R \neq 0$).
 
 # %%
 R = returns.simple_returns(prices)
@@ -306,7 +306,7 @@ fig.tight_layout()
 # 2020 (COVID, above 90%) and 2022. Turbulent days cluster together. This **volatility
 # clustering** returns in Module 3.
 #
-# ### 4c. Does volatility scale like $\sqrt{T}$?
+# ### 4c. Does volatility scale like the square root of time?
 #
 # If daily returns are uncorrelated, the variance of a $T$-day return is $T$ times the daily
 # variance, exactly as in diffusion where $\langle x^2 \rangle = 2Dt$. Then annualising
