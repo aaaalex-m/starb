@@ -32,7 +32,15 @@ text = re.sub(r"```math\n(.*?)\n```", lambda m: f"$$\n{m.group(1)}\n$$", text, f
 text = re.sub(r"<details><summary>(.*?)</summary>\s*", r"**\1.** ", text)
 text = text.replace("</details>", "")
 
-# Relative links -> GitHub, so they work from the PDF.
+# An image followed by a "**Figure N.** caption" paragraph -> one LaTeX figure with that
+# caption (LaTeX numbers it); image paths stay relative to the module folder.
+text = re.sub(
+    r"!\[[^\]]*\]\(([^)\s]+)\)\n\n\*\*Figure \d+\.\*\* (.+)",
+    lambda m: f"![{m.group(2)}]({m.group(1)}){{width=100%}}",
+    text,
+)
+
+# Relative links (not images) -> GitHub, so they work from the PDF.
 def absolute(m):
     label, target = m.group(1), m.group(2)
     if re.match(r"[a-z]+:", target) or target.startswith("#"):
@@ -40,7 +48,7 @@ def absolute(m):
     path = posixpath.normpath(posixpath.join(module_dir, target))
     return f"[{label}](https://github.com/aaaalex-m/starb/blob/main/{path})"
 
-text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", absolute, text)
+text = re.sub(r"(?<!!)\[([^\]]+)\]\(([^)]+)\)", absolute, text)
 title = title.replace('"', '\\"')
 print(f'---\ntitle: "{title}"\nsubtitle: "starb: learning statistical arbitrage in Python"\n---\n')
 print(text)
@@ -52,6 +60,9 @@ cat > "$tmp/header.tex" <<'EOF'
 \usepackage{etoolbox}
 \AtBeginEnvironment{longtable}{\small}
 \setlength{\emergencystretch}{3em}
+\usepackage{float}
+\floatplacement{figure}{H}
+\usepackage[font=small,labelfont=bf]{caption}
 EOF
 
 pandoc "$tmp/notes.md" \
@@ -59,6 +70,7 @@ pandoc "$tmp/notes.md" \
   --shift-heading-level-by=-1 \
   --pdf-engine=xelatex \
   --include-in-header="$tmp/header.tex" \
+  --resource-path="$module_dir" \
   -V documentclass=article -V fontsize=11pt -V geometry:margin=2.4cm \
   -V mainfont="TeX Gyre Pagella" -V mathfont="TeX Gyre Pagella Math" \
   -V monofont="DejaVu Sans Mono" -V monofontoptions="Scale=0.85" \
