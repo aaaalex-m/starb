@@ -64,7 +64,7 @@ def plot_acf(ax, rho: pd.Series, nobs: int, title: str) -> None:
 #
 # - **White noise:** $x_t = \varepsilon_t$. No memory at all.
 # - **AR(1)** (autoregressive of order 1): $x_t = c + \phi x_{t-1} + \varepsilon_t$. Each
-#   value remembers a fraction $\phi$ of the previous one. Stationary when $|\phi| < 1$.
+#   value remembers a fraction $\phi$ of the previous one. Stationary when $\lvert\phi\rvert \lt 1$.
 # - **Random walk:** $x_t = x_{t-1} + \varepsilon_t$, the AR(1) with $\phi = 1$ (a **unit
 #   root**). Shocks never decay.
 #
@@ -93,8 +93,9 @@ fig.tight_layout()
 # %% [markdown]
 # - White noise: every autocorrelation is inside the band (about 1 in 20 pokes out by
 #   chance, which is what a 95% band means).
-# - AR(1): geometric decay, $0.9^k$, with a **correlation time** $\tau = -1/\ln\phi \approx
-#   9.5$ steps. The sample ACF is noisy around the theoretical curve.
+# - AR(1): geometric decay, $0.9^k$, with a **correlation time**
+#   $\tau = -1/\ln\phi \approx 9.5$ steps. The sample ACF is noisy around the theoretical
+#   curve.
 # - Random walk: the sample ACF starts near 1 and decays only slowly and roughly linearly.
 #   That slow decay is the visual signature of a unit root. (The theoretical ACF of a
 #   random walk isn't even defined, because its variance isn't constant.)
@@ -113,8 +114,8 @@ pd.DataFrame({"ACF": stats.acf(ar, 5), "PACF": pacf(ar, nlags=5)}).T
 # One path can mislead. Simulate an **ensemble** of 2,000 independent paths and look at the
 # variance across paths at each time, $\operatorname{Var}(x_t)$.
 #
-# For the random walk, $x_t = \sum_{s \le t} \varepsilon_s$, so $\operatorname{Var}(x_t) =
-# t\sigma^2$, growing without bound: free diffusion, $\langle x^2\rangle = 2Dt$ with
+# For the random walk, $x_t = \sum_{s \le t} \varepsilon_s$, so
+# $\operatorname{Var}(x_t) = t\sigma^2$, growing without bound: free diffusion, $\langle x^2\rangle = 2Dt$ with
 # $2D = \sigma^2$. For the AR(1), the pull back towards the mean balances the shocks, and the
 # variance saturates: a particle in a harmonic trap. (Here both start at 0, so the AR(1) needs
 # a few correlation times to relax to equilibrium.)
@@ -140,7 +141,7 @@ fig.tight_layout()
 # %% [markdown]
 # This is the distinction everything in stat arb hinges on:
 #
-# - A **stationary** series (AR(1) with $|\phi| < 1$) has a constant mean and variance and
+# - A **stationary** series (AR(1) with $\lvert\phi\rvert \lt 1$) has a constant mean and variance and
 #   keeps coming back. A spread like this can be traded: when it is far from its mean, it is
 #   likely to return.
 # - A **non-stationary** series (random walk) has no fixed level to return to. Its variance
@@ -158,8 +159,10 @@ fig.tight_layout()
 # Model: $y = X\beta + \varepsilon$, with $X$ an $n \times k$ matrix whose first column is
 # ones (the intercept). OLS minimises the sum of squared residuals, which gives
 #
-# $$\hat\beta = (X^\top X)^{-1}X^\top y, \qquad \hat\sigma^2 = \frac{e^\top e}{n-k}, \qquad
-# \widehat{\operatorname{Var}}(\hat\beta) = \hat\sigma^2 (X^\top X)^{-1},$$
+# $$
+# \hat\beta = (X^\top X)^{-1}X^\top y, \qquad \hat\sigma^2 = \frac{e^\top e}{n-k}, \qquad
+# \widehat{\operatorname{Var}}(\hat\beta) = \hat\sigma^2 (X^\top X)^{-1},
+# $$
 #
 # with residuals $e = y - X\hat\beta$. Simulate $y = 1 + 2x + \varepsilon$ and compute it
 # all with NumPy:
@@ -197,7 +200,7 @@ print(sm.OLS(y, sm.add_constant(x)).fit().summary())
 # | `std err` | Standard error: the estimated standard deviation of $\hat\beta$ across hypothetical repeated samples |
 # | `t` | $t = \hat\beta / \text{SE}$: how many standard errors the estimate is from 0 |
 # | `P>\|t\|` | p-value: probability of a $\lvert t\rvert$ at least this large *if the true coefficient were 0* |
-# | `[0.025 0.975]` | 95% confidence interval, $\hat\beta \pm t_{0.975, n-k}\,\text{SE}$ |
+# | `[0.025 0.975]` | 95% confidence interval, $\hat\beta \pm t_{0.975, n-k} \text{SE}$ |
 # | `R-squared` | Fraction of the variance of $y$ explained by the fit |
 # | `Adj. R-squared` | $R^2$ penalised for the number of regressors |
 # | `F-statistic` | Test that all slopes are zero together |
@@ -216,8 +219,8 @@ fit.table()
 # %% [markdown]
 # ### 3b. What a hypothesis test promises
 #
-# A test of $H_0: \beta = 0$ at **significance level** 5% rejects when $p < 0.05$. If the
-# assumptions hold, then *when $H_0$ is true* it rejects 5% of the time: that is the **type I
+# A test of $H_0: \beta = 0$ at **significance level** 5% rejects when $p \lt 0.05$. If the
+# assumptions hold, then, when $H_0$ is true, it rejects 5% of the time: that is the **type I
 # error** rate (false positive). When $H_0$ is false, the probability of rejecting is the
 # **power**; failing to reject is a **type II error** (false negative). Check both by
 # simulation:
@@ -402,7 +405,7 @@ summary.T
 # 2. **Differencing cures spurious regression.** Regress the *differences* of two independent
 #    random walks on each other (1,000 pairs) and show the t-statistics now follow the
 #    nominal distribution, with about 5% beyond ±1.96.
-# 3. **Estimating $\phi$ near a unit root.** For $\phi \in \{0.5, 0.9, 0.99, 1.0\}$ and 250
+# 3. **Estimating $\phi$ near a unit root.** For $\phi \in \lbrace 0.5, 0.9, 0.99, 1.0 \rbrace$ and 250
 #    observations, estimate $\phi$ by regressing $x_t$ on $x_{t-1}$, over many simulations.
 #    How biased and how noisy is $\hat\phi$ as $\phi \to 1$? Why does this matter for
 #    deciding whether a spread is mean-reverting?
