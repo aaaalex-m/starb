@@ -26,13 +26,13 @@ The constant $\mu$ in the random walk is the **drift**: a steady trend added eac
 
 The variance grows without bound, like $\langle x^2\rangle = 2Dt$ for a diffusing particle. There is no level the series returns to.
 
-**AR(1).** For $|\phi| < 1$ the pull towards the mean balances the shocks and the process settles into an equilibrium distribution with
+**AR(1).** For $\lvert\phi\rvert \lt 1$ the pull towards the mean balances the shocks and the process settles into an equilibrium distribution with
 
 ```math
 \mathbb E[x_t] = \frac{c}{1-\phi}, \qquad \operatorname{Var}(x_t) = \frac{\sigma^2}{1-\phi^2}, \qquad \rho_k = \phi^{k}.
 ```
 
-(Deriving the variance is Exercise 1.) The autocorrelation decays exponentially with **correlation time** $\tau = -1/\ln\phi$, about 9.5 steps for $\phi = 0.9$. Module 6 shows that AR(1) is the exact discretisation of the Ornstein–Uhlenbeck process, the overdamped Langevin equation $dX = -\theta X\,dt + \sigma\,dW$ with $\phi = e^{-\theta\,\Delta t}$.
+(Deriving the variance is Exercise 1.) The autocorrelation decays exponentially with **correlation time** $\tau = -1/\ln\phi$, about 9.5 steps for $\phi = 0.9$. Module 6 shows that AR(1) is the exact discretisation of the Ornstein–Uhlenbeck process, the overdamped Langevin equation $dX = -\theta X dt + \sigma dW$ with $\phi = e^{-\theta \Delta t}$.
 
 At $\phi = 1$ the restoring force vanishes and AR(1) becomes a random walk. That boundary case is called a **unit root**, because the characteristic equation $1 - \phi z = 0$ has its root at $z = 1$.
 
@@ -44,7 +44,7 @@ A process is **strictly stationary** if its joint distributions don't change whe
 \mathbb E[x_t] = \mu, \qquad \operatorname{Var}(x_t) = \gamma_0, \qquad \operatorname{Cov}(x_t, x_{t-k}) = \gamma_k \quad\text{(depends only on the lag } k\text{)} .
 ```
 
-*Physics analogy:* a system in equilibrium vs one still diffusing away. White noise and AR(1) with $|\phi|<1$ are stationary; a random walk is not, because its variance depends on $t$.
+*Physics analogy:* a system in equilibrium vs one still diffusing away. White noise and AR(1) with $\lvert\phi\rvert \lt 1$ are stationary; a random walk is not, because its variance depends on $t$.
 
 **Order of integration.** $x$ is $I(d)$ if it must be differenced $d$ times to become stationary. Stationary series are $I(0)$. A random walk is $I(1)$: its differences $\Delta x_t = x_t - x_{t-1} = \mu + \varepsilon_t$ are white noise. Empirically, **log prices are roughly $I(1)$ and returns roughly $I(0)$**.
 
@@ -85,7 +85,7 @@ That last pair is **volatility clustering**: returns are nearly uncorrelated but
 *Physics analogy:* a $\chi^2$ fit with equal, uncorrelated error bars. The standard errors come from the curvature of $\chi^2$ around its minimum, as in any least-squares fit.
 
 - **Standard error (SE):** the square root of a diagonal entry of $\widehat{\operatorname{Var}}(\hat\beta)$, i.e. the error bar on one coefficient.
-- **t-statistic:** $t_j = \hat\beta_j / \mathrm{SE}_j$, the number of error bars between the estimate and 0.
+- **t-statistic:** $t_j = \hat\beta_j / \mathrm{SE}(\hat\beta_j)$, the number of error bars between the estimate and 0.
 - **$R^2$** $= 1 - \sum e_t^2 / \sum (y_t - \bar y)^2$: the fraction of the variance of $y$ explained by the fit.
 
 **Assumptions behind the textbook error bars:** errors have mean zero given $X$ (**exogeneity**: no omitted variable or reverse causation correlated with $X$); errors are uncorrelated with each other and have constant variance; and, for exact small-sample t-distributions, they are Gaussian. Under the first two, OLS is the best linear unbiased estimator (Gauss–Markov theorem).
@@ -97,8 +97,8 @@ That last pair is **volatility clustering**: returns are nearly uncorrelated but
 | **Null hypothesis** $H_0$ | The default claim being tested, e.g. $\beta = 0$ (no effect) |
 | **Alternative** $H_1$ | What you accept if you reject $H_0$, e.g. $\beta \ne 0$ |
 | **Test statistic** | A number computed from data whose distribution under $H_0$ is known (here $t$) |
-| **p-value** | Probability, *assuming $H_0$ is true*, of a statistic at least as extreme as observed |
-| **Significance level** $\alpha$ | The threshold, e.g. 5%: reject $H_0$ if $p < \alpha$ |
+| **p-value** | Probability, assuming $H_0$ is true, of a statistic at least as extreme as observed |
+| **Significance level** $\alpha$ | The threshold, e.g. 5%: reject $H_0$ if $p \lt \alpha$ |
 | **Type I error** | Rejecting a true $H_0$ (false positive); happens with probability $\alpha$ if the test is valid |
 | **Type II error** | Not rejecting a false $H_0$ (false negative) |
 | **Power** | Probability of rejecting a false $H_0$ = 1 − P(type II) |
@@ -121,7 +121,7 @@ In the notebook, with a persistent regressor and errors ($\phi = 0.9$, $T = 300$
 
 Regress one *independent* random walk on another (Granger & Newbold, 1974). In the notebook, with $T = 500$:
 
-- about 90% of regressions have $|t| > 1.96$ (it should be 5%);
+- about 90% of regressions have $\lvert t\rvert \gt 1.96$ (it should be 5%);
 - the median $|t|$ is about 10, and $R^2$ is often large;
 - it gets *worse* with more data: the median $|t|$ grows like $\sqrt T$ (about 4.6, 10 and 20 for $T$ = 100, 500 and 2,000).
 
@@ -131,7 +131,7 @@ Regress one *independent* random walk on another (Granger & Newbold, 1974). In t
 
 **The cures:**
 
-1. **Difference first:** regress returns on returns ($I(0)$ on $I(0)$). That is Exercise 2.
+1. **Difference first:** regress returns on returns, both $I(0)$. That is Exercise 2.
 2. **Test the residual:** if some combination $y - \beta x$ *is* stationary, the regression is meaningful. That is cointegration, Module 5, and it needs special critical values precisely because of this module's lesson.
 
 ---
@@ -181,14 +181,14 @@ Weak stationarity: constant mean and variance, and autocovariance depending only
 
 <details><summary>Key points</summary>
 
-$\phi = 1$ in $x_t = \phi x_{t-1} + \varepsilon_t$: shocks never decay, so the variance grows like $t$ (a random walk, $I(1)$). Log prices are approximately $I(1)$ (ACF ≈ 1 at all lags); returns are approximately $I(0)$ (ACF ≈ 0), though their volatility clusters. Testing for a unit root is hard near $\phi = 1$ (Exercise 3; the ADF test in Module 5).
+$\phi = 1$ in $x_t = \phi x_{t-1} + \varepsilon_t$: shocks never decay, so the variance grows like $t$: a random walk, which is $I(1)$. Log prices are approximately $I(1)$ (ACF ≈ 1 at all lags); returns are approximately $I(0)$ (ACF ≈ 0), though their volatility clusters. Testing for a unit root is hard near $\phi = 1$ (Exercise 3; the ADF test in Module 5).
 </details>
 
 **3. Explain spurious regression. Why can't you regress price on price and trust the t-stat?**
 
 <details><summary>Key points</summary>
 
-Independent $I(1)$ series regressed on each other give $|t| > 1.96$ about 90% of the time (500 points), with high $R^2$, getting worse as $T$ grows (t ∝ √T). The residual is non-stationary, so the OLS error assumptions fail and $\hat\beta$ doesn't converge to the truth (Granger–Newbold 1974; Phillips 1986). Fix: difference the data, or test the residual for stationarity (cointegration).
+Independent $I(1)$ series regressed on each other give $\lvert t\rvert \gt 1.96$ about 90% of the time (500 points), with high $R^2$, getting worse as $T$ grows (t ∝ √T). The residual is non-stationary, so the OLS error assumptions fail and $\hat\beta$ doesn't converge to the truth (Granger–Newbold 1974; Phillips 1986). Fix: difference the data, or test the residual for stationarity (cointegration).
 </details>
 
 **4. What does a p-value of 0.03 mean, and what does it *not* mean?**
