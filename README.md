@@ -14,11 +14,13 @@ A word on expectations: simple pairs strategies on liquid US stocks have mostly 
 
 ## Roadmap
 
+Each module's lecture notes are linked below.
+
 | # | Module | `statarb` code | Status |
 |---|---|---|---|
 | 0 | [Setup and tooling](modules/00-setup/lecture.md) | skeleton, `config`, CI | done |
 | 1 | [Markets, prices and returns](modules/01-returns/lecture.md) | `data`, `returns` | done |
-| 2 | Data pitfalls: survivorship and look-ahead bias | `universe`, `data.clean_prices` | |
+| 2 | [Data pitfalls: survivorship and look-ahead bias](modules/02-data-pitfalls/lecture.md) | `universe`, `checks`, `data.clean_prices` | done |
 | 3 | Statistics toolkit: random walks, stationarity, regression | `simulate`, `stats` | |
 | 4 | Distance-method pairs trading (Gatev et al. 2006) | `pairs.distance`, `signals` | |
 | 5 | Cointegration: Engle–Granger and ADF | `coint` | |
@@ -61,6 +63,28 @@ Defined in [`src/statarb/config.py`](src/statarb/config.py):
 ## Data policy
 
 Prices come from Yahoo Finance via `yfinance` and are cached as parquet under `data/`, which is git-ignored. Market data is **never committed**: Yahoo's terms don't allow redistribution, and CI must not depend on a flaky download. Unit tests and CI use synthetic data only. Each cached download records its download date, because Yahoo revises history.
+
+Every signal is checked for look-ahead with the truncation test in [`statarb.checks`](src/statarb/checks.py): its past values must not change when future data is removed.
+
+## Project universes
+
+Defined in [`src/statarb/universe.py`](src/statarb/universe.py) (see [Module 2](modules/02-data-pitfalls/lecture.md)):
+
+| Universe | Contents | Known biases | Used in |
+|---|---|---|---|
+| **U1** | SPY, the 11 sector ETFs, classic pairs (KO/PEP, XOM/CVX, EWA/EWC, GLD/GDX, V/MA, HD/LOW) | Low survivorship risk; XLRE (2015) and XLC (2018) have short histories | Modules 4–10 |
+| **U2** | `LARGE_CAP_100`: 100 large S&P 500 members as of November 2026 | Survivorship-biased by construction: chosen because they are large today | Modules 5, 11 |
+| **U3** | Current S&P 500 plus sector ETFs, optionally filtered by point-in-time membership | Delisted members largely missing from Yahoo | Modules 11–13 |
+
+## Known data limitations
+
+- **Survivorship.** Yahoo drops most delisted securities: of the 724 tickers that were S&P 500 members at some point in 2016–2025, 123 return no data, and about 20% of the 2016 members are missing. Over that decade an equal-weight portfolio of *today's* members returned 18.1% a year, against 13.0% for point-in-time members with data and 11.6% for the real equal-weight ETF (RSP).
+- **Point-in-time membership** is rebuilt from pinned Wikipedia revisions (constituents rev. 1384572480, changes rev. 1383679373). It is accurate to about 1% for the last decade and drifts before about 2008, where the changes table is incomplete. Renamed and recycled tickers are not tracked.
+- **Recycled tickers.** Some old tickers now return a different company (STI, SE, ADT, ...). Portfolios only use a ticker while it is a member, and those histories start later.
+- **Corporate-action errors.** Yahoo mis-adjusts some events, e.g. Danaher's 2016 spin-off of Fortive (a fake +61% day in `adj_close`). New universes are screened with `data.sanity_report` and `data.flag_returns`, and every move beyond ±50% is explained before use.
+- **Stale and pre-listing prices.** Some histories (e.g. AMCR before 2019) contain long zero-volume flat stretches.
+- **Revisions.** Adjusted prices change after each new dividend, and Yahoo occasionally revises history; results depend on the download date recorded in the cache.
+- **Calendars.** Assets are aligned on the union of trading dates; gaps of up to 3 days are forward-filled and longer gaps left missing. Closes in different time zones are not simultaneous.
 
 ## Layout
 
