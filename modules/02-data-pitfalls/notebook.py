@@ -314,7 +314,7 @@ print(f"next-day (honest):     Sharpe {sharpe(signal.shift(1) * spy):6.2f}")
 # ### 3b. The subtle version: normalising with the full sample
 #
 # A common pattern: standardise a price series, $z_t = (x_t - \bar x)/s_x$, and bet on
-# reversion (short when $z_t > 0$, long when $z_t < 0$). If $\bar x$ and $s_x$ come from the
+# reversion (short when $z_t \gt 0$, long when $z_t \lt 0$). If $\bar x$ and $s_x$ come from the
 # *whole sample*, $z_t$ knows where the series will spend its future.
 #
 # Test it on pure random walks, which are unpredictable by construction. Both versions below

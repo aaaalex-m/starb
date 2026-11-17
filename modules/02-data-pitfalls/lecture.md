@@ -16,7 +16,7 @@ The maths is conditioning. If survival $S$ is more likely after high returns, th
 \mathbb E[R \mid S] > \mathbb E[R].
 ```
 
-A clean special case: if returns are Gaussian, $R \sim \mathcal N(\mu, \sigma^2)$, and only assets with $R > c$ survive, then
+A clean special case: if returns are Gaussian, $R \sim \mathcal N(\mu, \sigma^2)$, and only assets with $R \gt c$ survive, then
 
 ```math
 \mathbb E[R \mid R > c] = \mu + \sigma\,\frac{\varphi(\alpha)}{1 - \Phi(\alpha)}, \qquad \alpha = \frac{c - \mu}{\sigma},
