@@ -20,3 +20,10 @@ repos:
     hooks:
       - id: jupytext
         args: [--sync]
+  - repo: local
+    hooks:
+      - id: check-math
+        name: maths in Markdown renders on GitHub
+        entry: python scripts/check_math.py
+        language: system
+        files: (\.md$|^modules/.*/notebook\.py$)
