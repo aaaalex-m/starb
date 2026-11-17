@@ -34,6 +34,8 @@
 # New code: `statarb.simulate`, `statarb.stats`.
 
 # %%
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -46,6 +48,14 @@ from statarb import data, returns, simulate, stats
 pd.set_option("display.precision", 4)
 plt.rcParams.update({"figure.dpi": 100, "axes.grid": True, "grid.alpha": 0.3})
 rng = np.random.default_rng(2026)
+
+# Figures used in lecture.md are saved here; each uses its own seed so it is reproducible.
+FIG_DIR = Path("figures")
+FIG_DIR.mkdir(exist_ok=True)
+
+
+def save(fig, name: str) -> None:
+    fig.savefig(FIG_DIR / name, dpi=150, bbox_inches="tight")
 
 
 def plot_acf(ax, rho: pd.Series, nobs: int, title: str) -> None:
@@ -111,6 +121,8 @@ pd.DataFrame({"ACF": stats.acf(ar, 5), "PACF": pacf(ar, nlags=5)}).T
 # %% [markdown]
 # ## 2. Ensembles: diffusion vs a particle in a trap
 #
+# ### 2a. Variance across the ensemble
+#
 # One path can mislead. Simulate an **ensemble** of 2,000 independent paths and look at the
 # variance across paths at each time, $\operatorname{Var}(x_t)$.
 #
@@ -147,10 +159,114 @@ fig.tight_layout()
 # - A **non-stationary** series (random walk) has no fixed level to return to. Its variance
 #   grows with time; "far from the mean" means nothing.
 #
+# ### 2b. Constant spread vs growing spread
+#
+# The same idea as a picture. For each process, 2,000 paths: the ensemble mean (black), the
+# bands mean ± 1 and ± 2 ensemble standard deviations (shaded), and the theoretical ± 2σ band
+# (dashed). The y-axis is shared, so the spreads can be compared directly. White noise and
+# AR(1) start in equilibrium.
+
+# %%
+fig_rng = np.random.default_rng(31)
+n_steps, n_paths, phi = 250, 2000, 0.9
+t = np.arange(1, n_steps + 1)
+ensembles = {
+    "White noise (stationary)": (
+        simulate.white_noise(n_steps, n_paths=n_paths, seed=fig_rng),
+        np.full(n_steps, 1.0),
+    ),
+    "AR(1), φ = 0.9 (stationary)": (
+        simulate.ar1(n_steps, phi, n_paths=n_paths, seed=fig_rng),
+        np.full(n_steps, 1 / np.sqrt(1 - phi**2)),
+    ),
+    "Random walk (non-stationary)": (
+        simulate.random_walk(n_steps, n_paths=n_paths, seed=fig_rng),
+        np.sqrt(t),
+    ),
+}
+
+fig, axes = plt.subplots(1, 3, figsize=(13, 4), sharey=True)
+for ax, (title, (paths, sd_theory)) in zip(axes, ensembles.items(), strict=True):
+    mean, sd = paths.mean(axis=1), paths.std(axis=1)
+    ax.plot(t, paths[:, :12], color="0.6", lw=0.5)
+    ax.fill_between(t, mean - 2 * sd, mean + 2 * sd, color="C0", alpha=0.15, label="mean ± 2 sd")
+    ax.fill_between(t, mean - sd, mean + sd, color="C0", alpha=0.3, label="mean ± 1 sd")
+    ax.plot(t, mean, "k", lw=1.5, label="ensemble mean")
+    ax.plot(t, 2 * sd_theory, "C3--", lw=1, label=r"theory $\pm 2\sigma$")
+    ax.plot(t, -2 * sd_theory, "C3--", lw=1)
+    ax.set_title(title)
+    ax.set_xlabel("t")
+axes[0].legend(loc="lower left", fontsize=8)
+fig.suptitle("Stationary series keep a constant spread; a random walk's spread grows like √t")
+fig.tight_layout()
+save(fig, "stationarity-ensembles.png")
+
+# %% [markdown]
+# ### 2c. One path: rolling mean and standard deviation
+#
+# In practice we see *one* path, not an ensemble. A rolling window (here 100 steps) gives a
+# local mean and standard deviation. For a stationary series both hover around fixed values.
+# For a random walk the rolling mean wanders off with the path, so no fixed "mean ± k
+# standard deviations" exists to trade against.
+
+# %%
+path_rng = np.random.default_rng(32)
+n_long, window = 2000, 100
+single = {
+    "AR(1), φ = 0.9": simulate.ar1(n_long, phi, seed=path_rng),
+    "Random walk": simulate.random_walk(n_long, seed=path_rng),
+}
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 5.5), sharex=True)
+for col, (title, x) in enumerate(single.items()):
+    s = pd.Series(x)
+    axes[0, col].plot(s, lw=0.6, color="0.5", label="path")
+    axes[0, col].plot(s.rolling(window).mean(), "C0", lw=1.5, label=f"rolling mean ({window})")
+    axes[0, col].set_title(title)
+    axes[0, col].legend(fontsize=8, loc="upper left")
+    axes[1, col].plot(s.rolling(window).std(), "C1", lw=1.5, label=f"rolling sd ({window})")
+    axes[1, col].set_xlabel("t")
+    axes[1, col].legend(fontsize=8, loc="upper left")
+axes[1, 0].axhline(1 / np.sqrt(1 - phi**2), color="C3", ls="--", lw=1, label="stationary sd")
+axes[1, 0].legend(fontsize=8, loc="upper left")
+fig.tight_layout()
+save(fig, "rolling-moments.png")
+
+# %% [markdown]
+# For the AR(1) the rolling standard deviation fluctuates around, and on average a little
+# below, the stationary value: a 100-step window spans only about ten correlation times, so
+# it rarely sees the full range of the process. For the random walk the rolling standard
+# deviation swings between about 2 and 10: each window measures how far the path happened
+# to travel within it, not a fixed property of the process. (The *ensemble* spread is what
+# grows like $\sqrt t$, as in Section 2b.)
+#
+# ### 2d. Differencing an I(1) process
+#
 # **Order of integration.** A series is $I(1)$ if it must be differenced once to become
-# stationary, $I(0)$ if it is stationary already. Differencing a random walk gives back the
-# white-noise shocks, so a random walk is $I(1)$. Log prices are approximately $I(1)$, and
-# returns (their first differences) approximately $I(0)$.
+# stationary, $I(0)$ if it is stationary already. Differencing a random walk,
+# $\Delta x_t = x_t - x_{t-1} = \varepsilon_t$, gives back the white-noise shocks, so a
+# random walk is $I(1)$. The ACF shows the change: from a slow, near-linear decay to nothing
+# outside the white-noise band.
+
+# %%
+walk = simulate.random_walk(1000, seed=np.random.default_rng(33))
+diffed = np.diff(walk)
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 5.5), gridspec_kw={"width_ratios": [2, 1]})
+axes[0, 0].plot(walk, lw=0.8)
+axes[0, 0].set_title("Random walk: I(1), non-stationary")
+plot_acf(axes[0, 1], stats.acf(walk, 40), len(walk), "ACF of the random walk")
+axes[1, 0].plot(diffed, lw=0.6, color="C2")
+axes[1, 0].set_title("First difference: I(0), stationary (white noise)")
+axes[1, 0].set_xlabel("t")
+plot_acf(axes[1, 1], stats.acf(diffed, 40), len(diffed), "ACF of the first difference")
+axes[1, 1].legend(fontsize=8)
+fig.tight_layout()
+save(fig, "differencing-random-walk.png")
+
+# %% [markdown]
+# Log prices are approximately $I(1)$, and returns (their first differences) approximately
+# $I(0)$; Section 5 shows this on SPY.
 #
 # ## 3. Ordinary least squares
 #
@@ -355,8 +471,8 @@ pd.DataFrame(by_length).T.rename_axis("T")
 #
 # ## 5. Real data: SPY returns and volatility clustering
 #
-# Twenty years of SPY daily data. Compare the ACF of the log price, of daily log returns, and
-# of squared returns.
+# Twenty years of SPY daily data. First the real-data version of Section 2d: the log price
+# is $I(1)$-like, and differencing it (log returns) gives a stationary-looking series.
 
 # %%
 prices = data.load_prices("SPY", "2005-01-01", "2024-12-31")["SPY"]
@@ -364,12 +480,31 @@ log_price = np.log(prices)
 r = returns.log_returns(prices)
 T = len(r)
 
-fig, axes = plt.subplots(1, 3, figsize=(13, 3.6))
-plot_acf(axes[0], stats.acf(log_price, 60), T, "ACF: log price")
-plot_acf(axes[1], stats.acf(r, 60), T, "ACF: daily log return")
-plot_acf(axes[2], stats.acf(r**2, 60), T, "ACF: squared return")
-axes[1].set_ylim(-0.15, 0.15)
-axes[2].set_ylim(-0.15, 0.6)
+fig, axes = plt.subplots(2, 2, figsize=(12, 5.5), gridspec_kw={"width_ratios": [2, 1]})
+log_price.plot(ax=axes[0, 0], lw=0.8)
+axes[0, 0].set_title("SPY log price: I(1)-like, wanders with a trend")
+axes[0, 0].set_xlabel("")
+plot_acf(axes[0, 1], stats.acf(log_price, 60), T, "ACF of the log price")
+r.plot(ax=axes[1, 0], lw=0.4, color="C2")
+axes[1, 0].set_title("SPY daily log return (first difference): I(0)-like")
+axes[1, 0].set_xlabel("")
+plot_acf(axes[1, 1], stats.acf(r, 60), T, "ACF of the log return")
+axes[1, 1].set_ylim(-0.15, 0.15)
+axes[1, 1].legend(fontsize=8)
+fig.tight_layout()
+save(fig, "differencing-spy.png")
+
+# %% [markdown]
+# The return series is stationary in mean but visibly not in variance: calm stretches and
+# bursts (2008, 2020). The ACF of *squared* returns measures that:
+
+# %%
+fig, axes = plt.subplots(1, 2, figsize=(12, 3.4), gridspec_kw={"width_ratios": [2, 1]})
+(r**2).plot(ax=axes[0], lw=0.5, color="C1")
+axes[0].set_title("SPY squared daily log return")
+axes[0].set_xlabel("")
+plot_acf(axes[1], stats.acf(r**2, 60), T, "ACF of the squared return")
+axes[1].set_ylim(-0.15, 0.6)
 fig.tight_layout()
 
 summary = pd.DataFrame(
