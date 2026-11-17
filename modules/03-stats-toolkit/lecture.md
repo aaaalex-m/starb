@@ -46,7 +46,23 @@ A process is **strictly stationary** if its joint distributions don't change whe
 
 *Physics analogy:* a system in equilibrium vs one still diffusing away. White noise and AR(1) with $\lvert\phi\rvert \lt 1$ are stationary; a random walk is not, because its variance depends on $t$.
 
+![Ensembles of white noise, AR(1) and a random walk with mean and standard-deviation bands](figures/stationarity-ensembles.png)
+
+**Figure 1.** 2,000 simulated paths of each process (12 shown in grey): ensemble mean (black), mean ± 1 and ± 2 standard deviations across paths (shaded) and the theoretical ± 2σ band (red dashes). The stationary series keep a constant mean and spread, ± 2 for white noise and ± $2/\sqrt{1-\phi^2} \approx 4.6$ for the AR(1). The random walk's spread grows like $2\sqrt t$: free diffusion.
+
+![Rolling mean and rolling standard deviation of one AR(1) path and one random-walk path](figures/rolling-moments.png)
+
+**Figure 2.** What one path shows, with a 100-step rolling window. The AR(1)'s rolling mean and standard deviation hover around fixed values. The random walk's rolling mean wanders off with the path and its rolling standard deviation swings widely, so "two standard deviations from the mean" has no fixed meaning.
+
 **Order of integration.** $x$ is $I(d)$ if it must be differenced $d$ times to become stationary. Stationary series are $I(0)$. A random walk is $I(1)$: its differences $\Delta x_t = x_t - x_{t-1} = \mu + \varepsilon_t$ are white noise. Empirically, **log prices are roughly $I(1)$ and returns roughly $I(0)$**.
+
+![A random walk and its first difference, each with its ACF](figures/differencing-random-walk.png)
+
+**Figure 3.** Differencing turns an $I(1)$ series into an $I(0)$ one. Top: a random walk and its sample ACF, which decays slowly from about 1 (the unit-root signature). Bottom: its first difference, which is the white-noise shocks; every autocorrelation sits inside the $\pm 1.96/\sqrt T$ band.
+
+![SPY log price and daily log return, each with its ACF](figures/differencing-spy.png)
+
+**Figure 4.** The same on real data, SPY 2005–2024. The log price behaves like an $I(1)$ series (ACF ≈ 1 at all lags shown). Its first difference, the daily log return, has almost no autocorrelation (lag 1 ≈ −0.10). Its mean is stable, but its variance clearly is not: volatility clusters (Section 3).
 
 **Why it matters for trading.** "The spread is two standard deviations above its mean, so it will probably come back" only makes sense if the spread *has* a stable mean and standard deviation, i.e. is stationary. Most prices aren't; the hope of stat arb is that some *combinations* of prices are (cointegration, Module 5).
 
