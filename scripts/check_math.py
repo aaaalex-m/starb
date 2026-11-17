@@ -5,7 +5,7 @@ GitHub renders ``$...$`` (inline), ``$$...$$`` on their own lines, and fenced ``
 repository's Markdown files and the Markdown cells of the jupytext notebooks for:
 
 * ``\(...\)`` or ``\[...\]`` delimiters (not supported by GitHub);
-* ``$$`` sharing a line with other text;
+* ``$$`` sharing a line with other text, and inline maths broken across lines;
 * inside inline or ``$$`` maths: ``<``/``>`` (use ``\lt``/``\gt``); a backslash before
   punctuation, which Markdown treats as an escape (``\,`` becomes ``,``; use ``\thinspace``,
   ``\lbrace``/``\rbrace`` for ``\{``/``\}``); ``*`` (use ``\ast``); and ``_`` right after
@@ -86,6 +86,15 @@ def markdown_chunks(path: Path) -> list[tuple[int, str]]:
     return chunks
 
 
+def _rows(text: str) -> list[tuple[int, str]]:
+    """(character offset, line) for each line of a chunk."""
+    rows, offset = [], 0
+    for row in text.split("\n"):
+        rows.append((offset, row))
+        offset += len(row) + 1
+    return rows
+
+
 def check_chunk(start: int, text: str) -> list[tuple[int, str]]:
     problems = []
 
@@ -98,6 +107,11 @@ def check_chunk(start: int, text: str) -> list[tuple[int, str]]:
         stripped = m.group().strip()
         if stripped != "$$" and not re.fullmatch(r"\$\$[^$]+\$\$", stripped):
             problems.append((line_of(m.start()), "display maths ($$) must be alone on its line"))
+
+    for offset, row in _rows(text):
+        singles = re.sub(r"\\\$|\$\$", "", row).count("$")
+        if singles % 2:
+            problems.append((line_of(offset), "inline maths must not span a line break"))
 
     display_spans = [m.span() for m in DISPLAY.finditer(text)]
     for m in DISPLAY.finditer(text):
