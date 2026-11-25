@@ -238,7 +238,7 @@ fig.tight_layout()
 #
 # **Which to use when.** Log returns add over *time*; simple returns add across *assets*:
 #
-# $$\ln\frac{P_T}{P_0} = \sum_{t=1}^{T} r_t, \qquad R^{\text{portfolio}}_t = \sum_i w_i R_{i,t}.$$
+# $$\ln\frac{P_T}{P_0} = \sum_{t=1}^{T} r_t, \qquad R_t^{\text{portfolio}} = \sum_i w_i R_{i,t}.$$
 #
 # Check both on the data. First, time aggregation for SPY:
 

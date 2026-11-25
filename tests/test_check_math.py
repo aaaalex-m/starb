@@ -60,3 +60,20 @@ def test_notebook_markdown_cells_are_checked(tmp_path):
     assert check_math.main([str(nb)]) == 1
     nb.write_text("# %% [markdown]\n# Good $r \\lt R$ here.\n\n# %%\nx = '$a < b$'\n")
     assert check_math.main([str(nb)]) == 0
+
+
+def test_alerts_and_details(tmp_path):
+    md = tmp_path / "notes.md"
+    good = (
+        "> [!NOTE]\n> Alert maths $a \\lt b$:\n>\n> $$\n> x^2\n> $$\n\n"
+        "<details>\n<summary>Derivation of $x$</summary>\n\n"
+        "With $x$ inline:\n\n$$y = \\lvert x\\rvert$$\n\n</details>\n"
+    )
+    md.write_text(good)
+    assert check_math.main([str(md)]) == 0
+    md.write_text("> [!TIP]\n> Bad alert maths $a < b$.\n")
+    assert check_math.main([str(md)]) == 1
+    md.write_text("<details>\n<summary>Box</summary>\n\n```math\nx\n```\n\n</details>\n")
+    assert check_math.main([str(md)]) == 1
+    md.write_text("<details>\n<summary>Box</summary>\n\nWith $x$:\n\n$$\ny\n$$\n\n</details>\n")
+    assert check_math.main([str(md)]) == 1
