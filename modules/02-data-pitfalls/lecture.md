@@ -10,7 +10,7 @@ Notebook: [`notebook.ipynb`](notebook.ipynb). Code: [`statarb/universe.py`](../.
 ## Step 1. Rebuild the S&P 500 on any past date
 
 ```python
-current, changes = universe.load_sp500_tables()      # 503 members today, 415 recorded changes
+current, changes = universe.load_sp500_tables()  # 503 members today, 415 recorded changes
 universe.sp500_members_asof("2016-01-04", current, changes)
 ```
 
@@ -205,7 +205,7 @@ FTSE 100       0.49          0.15
 ## Step 11. Explain every big move
 
 ```python
-flags = data.flag_returns(adj, threshold=0.5)   # 46 daily moves beyond ±50%, in 25 tickers
+flags = data.flag_returns(adj, threshold=0.5)  # 46 daily moves beyond ±50%, in 25 tickers
 ```
 
 Each flag needs an explanation before the data is trusted. In our download there are three kinds:
