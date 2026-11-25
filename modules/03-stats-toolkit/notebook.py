@@ -13,7 +13,7 @@
 # ---
 
 # %% [markdown]
-# # Module 3: Statistics toolkit — random walks, stationarity, regression
+# # Module 2: Statistics toolkit — random walks, stationarity, regression
 #
 # Statistical arbitrage rests on one question: **is this spread stationary?** Before we can
 # test that (Module 5), we need the vocabulary (random walk, AR(1), stationarity, unit root,
@@ -320,7 +320,7 @@ print(sm.OLS(y, sm.add_constant(x)).fit().summary())
 # | `R-squared` | Fraction of the variance of $y$ explained by the fit |
 # | `Adj. R-squared` | $R^2$ penalised for the number of regressors |
 # | `F-statistic` | Test that all slopes are zero together |
-# | `Log-Likelihood`, `AIC`, `BIC` | Gaussian likelihood of the fit and information criteria for comparing models (Module 10) |
+# | `Log-Likelihood`, `AIC`, `BIC` | Gaussian likelihood of the fit and information criteria for comparing models |
 # | `Durbin-Watson` | Checks residual autocorrelation: about 2 if none, near 0 if strongly positive |
 # | `Omnibus`, `Jarque-Bera`, `Skew`, `Kurtosis` | Tests whether the residuals look Gaussian |
 # | `Cond. No.` | Condition number of $X$: large values warn of nearly collinear regressors |
