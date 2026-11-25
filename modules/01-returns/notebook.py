@@ -13,7 +13,7 @@
 # ---
 
 # %% [markdown]
-# # Module 1: Markets, prices and returns
+# # Module 1, part 1: Prices and returns
 #
 # Everything later in the project works with **returns**, not prices. This notebook builds
 # the data layer (`statarb.data`) and the return toolkit (`statarb.returns`), and uses them
@@ -304,7 +304,7 @@ fig.tight_layout()
 # Volatility spends long stretches near 10–15% and then jumps: May 2010 (the "flash
 # crash"), August–October 2011 (US credit downgrade), August 2015, December 2018, March–April
 # 2020 (COVID, above 90%) and 2022. Turbulent days cluster together. This **volatility
-# clustering** returns in Module 3.
+# clustering** returns in Module 2.
 #
 # ### 4c. Does volatility scale like the square root of time?
 #

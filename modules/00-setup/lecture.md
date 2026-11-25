@@ -5,7 +5,7 @@ In this module you set up a project that anyone (future you, or an interviewer) 
 Notebook: [`notebook.ipynb`](notebook.ipynb). Code: [`statarb/config.py`](../../src/statarb/config.py).
 
 > [!TIP]
-> **How to read these notes.** The numbered steps are the main path: each does one thing, shows the result, and says what it means. The boxes are optional. Notes, tips and warnings are short asides; collapsed sections (click to expand) hold derivations, extra jargon and interview-level detail.
+> **How to read these notes.** The numbered steps are the main path: each does one thing, shows the result, and says what it means. The boxes are optional. Notes, tips and warnings are short asides; collapsed sections (click to expand) hold derivations and interview-level detail.
 
 ## Step 1. Create the environment
 
@@ -13,12 +13,12 @@ Notebook: [`notebook.ipynb`](notebook.ipynb). Code: [`statarb/config.py`](../../
 uv sync
 ```
 
-`uv` reads `pyproject.toml` (the list of packages the project needs) and `uv.lock` (the exact version of every package, including indirect ones), and installs them into a private folder, `.venv/`.
+`uv` reads `pyproject.toml` (the packages the project needs) and `uv.lock` (the exact version of every package, including indirect ones), and installs them into a private folder, `.venv/`.
 
-**What it means:** everyone who runs `uv sync` gets the same versions of NumPy, pandas, yfinance and the rest. Results can't change because a library quietly changed underneath you. The `statarb` package itself is installed in *editable* mode, so changes to `src/statarb/` are picked up immediately.
+**What it means:** everyone who runs `uv sync` gets the same versions of NumPy, pandas, yfinance and the rest, so results can't change because a library quietly changed underneath you.
 
 > [!NOTE]
-> A **virtual environment** is an isolated Python installation for one project, so its packages don't clash with other projects. A **lockfile** (`uv.lock`) records the exact versions it was tested with.
+> A **virtual environment** is an isolated Python installation for one project. A **lockfile** (`uv.lock`) records the exact versions it was tested with.
 
 ## Step 2. Run the tests
 
@@ -28,12 +28,12 @@ uv run pytest
 
 Result: a line such as `28 passed, 1 deselected`.
 
-**What it means:** each function in `statarb` has a **unit test**, a small automatic check on a case where the right answer is known. The tests use **synthetic data** (simulated prices), never downloads. The one deselected test needs the internet and only runs on request (`uv run pytest -m network`).
+**What it means:** each function in `statarb` has a **unit test**, a small automatic check on a case where the right answer is known. The tests use **synthetic data** (simulated prices), never downloads; the one deselected test needs the internet and runs only on request.
 
 <details>
 <summary>Why test on synthetic data first: calibrating the instrument</summary>
 
-Every estimator in this project is first run on simulated data where the true answer is known, the way you would calibrate an instrument before measuring. If an estimator can't recover a known hedge ratio or half-life from a simulation, its output on market data means nothing. Synthetic tests are also fast, deterministic (they use fixed **random seeds**) and don't depend on a website being up.
+Every estimator in this project is first run on simulated data where the true answer is known, the way you would calibrate an instrument before measuring. If an estimator can't recover a known parameter from a simulation, its output on market data means nothing. Synthetic tests are also fast and deterministic (they use fixed **random seeds**).
 
 </details>
 
@@ -44,9 +44,9 @@ uv run ruff check
 uv run ruff format
 ```
 
-Result: `All checks passed!`, and any formatting differences are fixed in place.
+Result: `All checks passed!`, and formatting differences are fixed in place.
 
-**What it means:** a **linter** flags suspicious code without running it (unused variables, shadowed names, imports in the wrong place). The formatter removes all debate about layout.
+**What it means:** a **linter** flags suspicious code without running it (unused variables, shadowed names); the formatter ends all debate about layout.
 
 ## Step 4. Open a notebook that imports the package
 
@@ -56,7 +56,7 @@ uv run jupyter lab
 
 Open `modules/00-setup/notebook.ipynb` and run it. The first cell prints the `statarb` version and the project's constants.
 
-**What it means:** notebooks import tested code from `statarb` instead of copy-pasting it. Each notebook exists twice: `notebook.py` is the source (plain text, readable in a code review) and `notebook.ipynb` is the executed copy with outputs, so GitHub shows the plots. The tool `jupytext` keeps the two in sync.
+**What it means:** notebooks import tested code from `statarb` instead of copy-pasting it. Each notebook exists twice: `notebook.py` is the plain-text source, readable in a code review, and `notebook.ipynb` is the executed copy with outputs, so GitHub shows the plots.
 
 ## Step 5. Download one ticker and cache it
 
@@ -67,70 +67,40 @@ load 1: download  0.470 s, 2516 rows
 load 2: cache     0.014 s, 2516 rows
 ```
 
-**What it means:** the second load reads a local **parquet** file (a compressed table format) instead of the internet. Module 1 turns this into `statarb.data.load_prices`, which also records *when* each file was downloaded.
+**What it means:** the second load reads a local file instead of the internet. Module 1 turns this into `statarb.data.load_prices`, which also records *when* each file was downloaded, because Yahoo revises its history.
 
 > [!WARNING]
-> Market data is **never committed** to the repository. Yahoo's terms don't allow redistribution, and the automated checks must not depend on a flaky download. `data/` is listed in `.gitignore`.
-
-> [!NOTE]
-> Yahoo revises its price history from time to time, so the same request next year can return slightly different numbers. Recording the download date makes that visible.
+> Market data is **never committed** to the repository: Yahoo's terms don't allow redistribution, and the automated checks must not depend on a flaky download.
 
 ## Step 6. Learn the project conventions
 
-These live in `src/statarb/config.py` and are used everywhere:
+These live in `src/statarb/config.py`:
 
-- **252 trading days per year.** A **trading day** is a day the exchange is open; US exchanges close at weekends and on about 9 holidays. We use **close-to-close** data: each daily return runs from one day's closing price to the next.
-- **Returns are decimals** (0.01 means 1%). **Costs are in basis points:** 1 bp = 0.01% $= 10^{-4}$.
+- **252 trading days per year** (a **trading day** is a day the exchange is open). Returns are **close-to-close**: from one day's closing price to the next.
+- **Returns are decimals** (0.01 means 1%); **costs are in basis points**: 1 bp = 0.01% $= 10^{-4}$.
 - **Seeds are explicit.** Every random function takes a `seed` argument.
 - **A signal computed with data up to day $t$ is traded at day $t+1$.**
 
 > [!WARNING]
-> The last rule matters most. If a decision uses today's closing price, you can't also trade *at* today's close. Breaking this rule is **look-ahead bias**, the most common way to fake a profitable **backtest** (a simulation of how a trading rule would have performed on historical data). Module 2 shows how to test for it automatically.
+> The last rule matters most. If a decision uses today's closing price, you can't also trade *at* today's close. Breaking this rule is **look-ahead bias**, the most common way to fake a profitable **backtest** (a simulation of a trading rule on historical data). Module 1 shows how to test for it automatically.
 
 ## Step 7. Let CI check every change
 
-Push a commit to GitHub. **Continuous integration (CI)**, here GitHub Actions, re-runs the lint, the format check, the notebook-pairing check and the tests on a clean machine, and shows a green tick or a red cross on the pull request.
+Push a commit to GitHub. **Continuous integration (CI)**, here GitHub Actions, re-runs the lint, the format check and the tests on a clean machine and shows a green tick or a red cross on the pull request.
 
-**What it means:** "works on my machine" is checked on someone else's machine every time. Running `uv run pre-commit install` once also runs the fast checks before each local commit.
+**What it means:** "works on my machine" is checked on someone else's machine every time.
 
 **Done when:** `uv run pytest` and `uv run ruff check` pass locally and on GitHub, and `uv run jupyter lab` opens a notebook that imports `statarb`.
 
 <details>
 <summary>Why all this machinery? Four ways a backtest stops being reproducible</summary>
 
-A backtest is an experiment on historical data, and its result is only worth something if it can be repeated. In quantitative finance the failure modes are specific:
-
-- **Silent environment drift.** A library upgrade changes a default (yfinance changed `auto_adjust` between versions), and your returns change without any code change. *Fix:* the lockfile.
+- **Silent environment drift.** A library upgrade changes a default (yfinance changed `auto_adjust` between versions) and your returns change without any code change. *Fix:* the lockfile.
 - **Data drift.** Yahoo revises its history. *Fix:* a local cache with a recorded download date.
 - **Unseeded randomness.** Simulations that differ on each run make it impossible to tell a bug from noise. *Fix:* explicit seeds.
 - **Hidden state in notebooks.** Cells run out of order produce results the saved notebook can't reproduce. *Fix:* re-execute notebooks top to bottom before committing them.
 
-The physics analogy is a lab notebook plus a calibrated, documented apparatus: the lockfile is the apparatus spec, the download date is the run log, and the seed fixes the Monte Carlo.
-
-</details>
-
-<details>
-<summary>Repository layout</summary>
-
-```
-modules/NN-topic/
-    notebook.py     # source of truth (jupytext percent format)
-    notebook.ipynb  # executed copy with outputs, so GitHub shows the plots
-    lecture.md      # these notes
-src/statarb/        # the shared package
-tests/              # one test file per package module
-GLOSSARY.md         # cumulative glossary across modules
-```
-
-| Tool | What it does | Why it matters |
-|---|---|---|
-| `uv` | Creates the environment and resolves dependencies into `uv.lock` | Exactly the same package versions everywhere (`uv sync --locked`) |
-| `src/statarb/` | Reusable code in an installable package | Notebooks import tested code |
-| `pytest` | Unit tests in `tests/` | Estimators checked where the answer is known |
-| `ruff` | Linter and formatter | Catches bugs, ends style debates |
-| `jupytext` | Pairs each `.ipynb` with a `.py` file | Readable notebook diffs |
-| GitHub Actions | Runs the checks on every push | A clean machine checks every change |
-| `pre-commit` | Runs ruff, jupytext and the maths check before each commit | Problems caught before CI |
+The physics analogy is a lab notebook plus a calibrated apparatus: the lockfile is the apparatus spec, the download date is the run log, and the seed fixes the Monte Carlo.
 
 </details>
 
@@ -153,7 +123,7 @@ Pinned package versions (lockfile); cached input data with a recorded download d
 <details>
 <summary>Key points</summary>
 
-Vendor terms usually forbid redistribution; data files bloat the repository; and tests that depend on downloaded data are slow and flaky. Tests use synthetic data; real data is cached locally with its download date.
+Vendor terms usually forbid redistribution, data files bloat the repository, and tests that depend on downloaded data are slow and flaky. Tests use synthetic data; real data is cached locally with its download date.
 
 </details>
 
@@ -187,7 +157,6 @@ On simulated data the true parameters are known, so you can check that the estim
 | Unit test | A small automatic check on a case with a known answer |
 | Linter | A tool that flags suspicious code without running it |
 | Continuous integration (CI) | A server that re-runs the checks on a clean machine on every change |
-| Parquet | A compressed, column-oriented table format, used for the data cache |
 | Trading day | A day the exchange is open; about 252 a year in the US |
 | Close-to-close | Returns measured between consecutive closing prices |
 | Basis point (bp) | One hundredth of a percent, $10^{-4}$ |

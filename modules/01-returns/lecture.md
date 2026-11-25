@@ -1,11 +1,11 @@
-# Module 1 — Markets, prices and returns
+# Module 1, part 1 — Prices and returns
 
-Every later model in this project works with **returns** (percentage changes), not prices. In this module you load real prices, see what a price series actually contains, turn prices into returns, and measure the handful of facts about returns that every interviewer assumes you know: how they add up, how volatility scales with time, and how fat the tails are.
+Every later model in this project works with **returns** (percentage changes), not prices. In this part you load real prices, see what a price series actually contains, turn prices into returns, and measure the facts about returns that every interviewer assumes you know: how they add up, how volatility scales with time, and how fat the tails are. Part 2 ([data pitfalls](../02-data-pitfalls/lecture.md)) covers what can go wrong with the data itself.
 
 Notebook: [`notebook.ipynb`](notebook.ipynb). Code: [`statarb/data.py`](../../src/statarb/data.py), [`statarb/returns.py`](../../src/statarb/returns.py).
 
 > [!TIP]
-> **How to read these notes.** The numbered steps are the main path. Boxes are optional: notes and warnings are short asides; collapsed sections hold derivations, extra jargon and interview-level detail.
+> **How to read these notes.** The numbered steps are the main path. Boxes are optional: notes and warnings are short asides; collapsed sections hold derivations and interview-level detail.
 
 ## Step 1. Look at one day of prices
 
@@ -20,19 +20,12 @@ aapl.loc["2020-08-26":"2020-09-01"]
 | 2020-08-31 | 127.58 | 131.00 | 126.00 | 129.04 | 125.06 | 2.3e8 | 0 | 4 |
 | 2020-09-01 | 132.76 | 134.80 | 130.53 | 134.18 | 130.04 | 1.5e8 | 0 | 0 |
 
-Each row is a daily **bar** for one **stock** (a share of ownership in a company), identified by its **ticker** (AAPL is Apple). The first, highest, lowest and last traded prices of the day are **open, high, low, close** (with **volume**, the number of shares traded, the bar is called **OHLCV**).
+Each row is a daily **bar** for one **stock** (a share of ownership in a company), identified by its **ticker** (AAPL is Apple). Open, high, low and close are the first, highest, lowest and last traded prices of the day; with **volume** (shares traded) the bar is called **OHLCV**.
 
-**What it means:** this is the raw material for everything else. Two columns already hint at complications: `splits` says something happened on 31 August, and `adj_close` differs from `close`. Steps 3 and 4 explain both.
+**What it means:** this is the raw material for everything else. Two columns hint at complications: `splits` says something happened on 31 August, and `adj_close` differs from `close`. Steps 3 and 4 explain both.
 
-<details>
-<summary>Market plumbing: exchanges, bid and ask, spread, liquidity, market cap</summary>
-
-- Trades happen on an exchange against standing orders. The **bid** is the best price someone will pay you; the **ask** (or offer) is the best price someone will sell to you. The **spread** (ask − bid) is a cost you pay on every trade; the **mid** is their average.
-- **Liquidity** is how easily you can trade without moving the price. For a large stock such as AAPL the spread is one cent on a few hundred dollars, well under 1 bp; for small companies it is often tens of basis points.
-- **Market capitalisation** is share price × number of shares: the market value of the whole company.
-- The closing price is set by a closing auction, which is why it is the standard reference price.
-
-</details>
+> [!NOTE]
+> Every trade crosses a **bid** (the best price a buyer will pay) or an **ask** (the best price a seller will accept). Their gap, the **spread**, is a cost on every trade; for large stocks it is well under 1 basis point.
 
 ## Step 2. Load a whole universe as one table
 
@@ -43,7 +36,7 @@ prices = data.load_prices(TICKERS, "2010-01-01", "2024-12-31")  # 3774 days x 10
 
 `load_prices` returns one column per ticker of adjusted closing prices, cached on disk after the first download.
 
-**What it means:** a **universe** is the set of assets you study. Two kinds appear here. **SPY** is an **ETF** (exchange-traded fund: a basket of stocks that trades like a single stock) that tracks the **S&P 500 index** (a rule-based basket of about 500 large US companies, used as a benchmark; an index is a number, not something you can buy). **XLE** and **XLP** are ETFs holding US energy and consumer-staples stocks. The rest are single stocks, including two textbook pairs: Exxon/Chevron (XOM, CVX) and Coca-Cola/PepsiCo (KO, PEP).
+**What it means:** a **universe** is the set of assets you study. **SPY** is an **ETF** (exchange-traded fund: a basket of stocks that trades like a single stock) that tracks the **S&P 500 index** (about 500 large US companies). **XLE** and **XLP** are ETFs of US energy and consumer-staples stocks. The rest are single stocks, including two textbook pairs: Exxon/Chevron (XOM, CVX) and Coca-Cola/PepsiCo (KO, PEP).
 
 ## Step 3. See a stock split in raw and adjusted prices
 
@@ -54,14 +47,14 @@ return on 2020-08-31 from as-traded prices: -74.2%
 return on 2020-08-31 from adjusted prices:  +3.4%
 ```
 
-**What it means:** a split is a **corporate action**, a company event that changes the price but not the holders' wealth. An **adjusted close** rewrites history so that day-to-day ratios are the investor's true return: on each split date every earlier price is divided by the split ratio $k$. Then $P_t^{\text{adj}} / P_{t-1}^{\text{adj}} - 1$ is the real one-day return.
+**What it means:** a split is a **corporate action**, an event that changes the price but not the holders' wealth. An **adjusted close** rewrites history so that day-to-day ratios are the investor's true return: on each split date every earlier price is divided by the split ratio $k$.
 
 > [!WARNING]
 > A backtest on unadjusted prices books the split as a −74% crash, or as a fantastic fake profit if it was short. Yahoo's `close` column is *already* split-adjusted; the notebook rebuilds the as-traded price with `data.unadjust_splits` to show the jump.
 
 ## Step 4. See a dividend in raw and adjusted prices
 
-Coca-Cola pays a cash **dividend** $D$ per share every quarter. On the **ex-dividend date** (the first day a buyer no longer receives the upcoming dividend) the price falls by roughly $D$. On 16 March 2023 ($D = 0.46$):
+Coca-Cola pays a cash **dividend** $D$ per share every quarter. On the **ex-dividend date** (the first day a buyer no longer receives it) the price falls by roughly $D$. On 16 March 2023 ($D = 0.46$):
 
 ```
 return from close     -0.215%
@@ -69,25 +62,16 @@ return from adj_close +0.550%
 difference             0.765%   vs   dividend / previous close  0.761%
 ```
 
-**What it means:** the holder didn't lose money; the drop was paid in cash. The adjusted close multiplies all earlier prices by $1 - D/P_{t-1}$, so the return includes the dividend. The **price return** (from `close`) ignores dividends; the **total return** (from `adj_close`) includes them. Over 2010–2024 dividends were about half (KO, PEP, XLP) to two-thirds (XOM, CVX, XLE) of the total return.
+**What it means:** the holder didn't lose money; the drop was paid in cash. The adjusted close multiplies all earlier prices by $1 - D/P_{t-1}$, so its return includes the dividend. The **price return** (from `close`) ignores dividends; the **total return** (from `adj_close`) includes them. Over 2010–2024 dividends were about half (KO, PEP, XLP) to two-thirds (XOM, CVX, XLE) of the total return.
 
 **Rule for the rest of the project: compute returns from `adj_close`.**
 
 <details>
-<summary>Adjustment factors, Yahoo's conventions, and why adjusted history changes</summary>
+<summary>Why adjusted prices change after every download</summary>
 
-On each event date $t$, every earlier price is multiplied by
+On each event date the adjustment factor ($1/k$ for a split, $1 - D/P_{t-1}$ for a dividend) is applied to all *earlier* prices, so the whole adjusted history is rewritten after every new dividend or split. The same download done next year gives different price *levels*, though the same returns; that is why the cache records its download date.
 
-$$\text{split } k:\quad \times \frac{1}{k}, \qquad\qquad \text{dividend } D:\quad \times\Big(1 - \frac{D}{P_{t-1}}\Big).$$
-
-| Yahoo column | splits | dividends | use |
-|---|---|---|---|
-| `close` | adjusted | not adjusted | display; price return |
-| `adj_close` | adjusted | adjusted | all return calculations |
-
-Because the factors apply to all *earlier* prices, the whole adjusted history is rewritten after every new dividend or split. The same download done next year gives different price *levels* (the returns are unchanged), which is why the cache records its download date.
-
-For a long/short pair (Module 4), dividends matter twice: the long leg receives its dividends, and the short leg must *pay* the lender the dividends on the shares it borrowed.
+For a long/short pair (Module 3), dividends count twice: the long leg receives its dividends, and the short leg must *pay* the dividends on the shares it borrowed.
 
 </details>
 
@@ -104,19 +88,23 @@ r = returns.log_returns(prices)
 
 On a typical 1% day the two differ by about $R^2/2 = 5 \times 10^{-5}$ (half a basis point); on the largest days of March 2020 (about ±10%) they differ by 40–65 bp.
 
-**What it means:** expanding the logarithm, $r = R - R^2/2 + R^3/3 - \dots$, so the two agree for small moves and $r \lt R$ always. Both are in use, because each adds up correctly in a different direction (next step).
+**What it means:** expanding the logarithm, $r = R - R^2/2 + \dots$, so the two agree for small moves and $r \lt R$ always. Both are used, because each adds up correctly in a different direction (the next two steps).
 
-## Step 6. Add returns up: over time, and across assets
+## Step 6. Add log returns over time
 
-**Over time, log returns add.** The total growth telescopes:
+The total growth telescopes:
 
 ```math
 \ln\frac{P_T}{P_0} = \sum_{t=1}^{T} r_t .
 ```
 
-The notebook checks it on SPY: the sum of 3,773 daily log returns and $\ln(P_{\text{end}}/P_{\text{start}})$ agree to six decimals (both 1.918802).
+On SPY, the sum of 3,773 daily log returns and $\ln(P_{\text{end}}/P_{\text{start}})$ agree to six decimals (both 1.918802).
 
-**Across assets, simple returns add.** A portfolio with dollar weights $w_i$ (fractions of its value) earns
+**What it means:** log returns are the natural unit for anything over time: multi-day returns, statistics, and models of price dynamics.
+
+## Step 7. Add simple returns across assets
+
+A portfolio with dollar weights $w_i$ (fractions of its value) earns
 
 ```math
 R^{\text{port}}_t = \sum_i w_i R_{i,t} .
@@ -124,33 +112,22 @@ R^{\text{port}}_t = \sum_i w_i R_{i,t} .
 
 Averaging *log* returns instead is only approximate: for a 50/50 KO/PEP portfolio the error is tiny on a typical day (0.02 bp) but always of the same sign, up to 8 bp.
 
-**What it means:**
-
-| Task | Use |
-|---|---|
-| Portfolio P&L, backtests, weights | simple returns |
-| Aggregating over time, statistics, models of price dynamics | log returns |
+**What it means:** portfolio P&L, backtests and weights use simple returns.
 
 <details>
-<summary>Derivations: portfolio returns, Jensen's inequality, volatility drag and Itô's lemma</summary>
+<summary>Derivation, Jensen's inequality, and volatility drag</summary>
 
-**Portfolio return.** With $n_i$ shares, value $V_t = \sum_i n_i P_{i,t}$ and weights $w_i = n_i P_{i,t-1}/V_{t-1}$,
+With $n_i$ shares, value $V_t = \sum_i n_i P_{i,t}$ and weights $w_i = n_i P_{i,t-1}/V_{t-1}$:
 
 $$R_t^{\text{port}} = \frac{V_t}{V_{t-1}} - 1 = \sum_i \frac{n_i P_{i,t-1}}{V_{t-1}}\Big(\frac{P_{i,t}}{P_{i,t-1}} - 1\Big) = \sum_i w_i R_{i,t}.$$
 
-The same fails for log returns because $\ln$ of a weighted average is not the weighted average of $\ln$. Since $\ln$ is concave, the weighted log return is always the smaller (**Jensen's inequality**), which is why the error above has one sign.
+The same fails for log returns because $\ln$ of a weighted average is not the weighted average of $\ln$. Since $\ln$ is concave, the weighted log return is always the smaller (**Jensen's inequality**), which is why the error has one sign.
 
-**Volatility drag.** Taking expectations of $r = R - R^2/2 + \dots$ for returns with mean $\mu$ and variance $\sigma^2$:
-
-$$\mathbb E[r] \approx \mu - \tfrac{1}{2}\sigma^2 .$$
-
-The average simple return overstates the compound growth rate. Example: +50% then −50% averages 0% but loses 25%.
-
-**Physics link.** For geometric Brownian motion, $dP/P = \mu dt + \sigma dW$, Itô's lemma gives $d\ln P = (\mu - \sigma^2/2) dt + \sigma dW$. The second-order term survives because $(dW)^2 = dt$: the same $\sigma^2/2$ drag.
+**Volatility drag.** Taking expectations of $r = R - R^2/2 + \dots$ for returns with mean $\mu$ and variance $\sigma^2$ gives $\mathbb E[r] \approx \mu - \sigma^2/2$: the average simple return overstates the compound growth rate. Example: +50% then −50% averages 0% but loses 25%. Exercise 1 checks this on SPY.
 
 </details>
 
-## Step 7. Measure volatility and annualise it
+## Step 8. Measure volatility and annualise it
 
 **Volatility** $\sigma$ is the standard deviation of returns. Statistics are quoted per year:
 
@@ -164,27 +141,25 @@ returns.summary(r)  # annualised mean and volatility, skewness, excess kurtosis
 
 Annualised volatility ranges from about 14–17% (XLP, KO, SPY, PEP) to about 28% (XLE, JPM, AAPL).
 
-**What it means:** the square root comes from diffusion. If daily returns are uncorrelated, their variances add, so the variance of a $T$-day return is $T$ times the daily one and its standard deviation grows like $\sqrt T$. The log price behaves like a diffusing particle, $\langle x^2\rangle = 2Dt$.
+**What it means:** the square root comes from diffusion. If daily returns are uncorrelated, their variances add, so the variance of a $T$-day return is $T$ times the daily one and its standard deviation grows like $\sqrt T$, just as $\langle x^2\rangle = 2Dt$ for a diffusing particle.
 
 > [!NOTE]
-> Volatility is not constant. A rolling 21-day estimate for SPY sits near 10–15% for long stretches and then jumps: 2011, 2015, 2018, above 90% in March 2020, 2022. Turbulent days come in bunches; this is **volatility clustering** (Module 3).
+> Volatility is not constant: a rolling 21-day estimate for SPY sits near 10–15% for long stretches, then jumps (above 90% in March 2020). Turbulent days come in bunches; this is **volatility clustering** (Module 2).
 
 <details>
-<summary>When the square-root-of-time rule fails: autocorrelation and the variance ratio</summary>
+<summary>When the square-root-of-time rule fails: autocorrelated returns</summary>
 
 With $\rho_k$ the correlation between returns $k$ days apart,
 
 $$\operatorname{Var}\Big(\sum_{t=1}^{T} r_t\Big) = T\sigma^2\Big(1 + 2\sum_{k=1}^{T-1}\big(1-\tfrac{k}{T}\big)\rho_k\Big).$$
 
-The $\sqrt{252}$ rule therefore assumes no autocorrelation ($\rho_k = 0$; returns need not be Gaussian or independent, only uncorrelated) and constant variance over the period.
-
-In the notebook, volatility measured from monthly returns is 10–25% *lower* than from daily returns for most assets, because daily returns are slightly negatively autocorrelated (lag-1 autocorrelation between −0.02 and −0.14). Comparing variances across horizons like this is the **variance-ratio test** (Lo and MacKinlay, 1988). For a mean-reverting spread, the thing stat arb trades, the effect is extreme: the variance stops growing altogether (a particle in a confining potential, Module 6).
+So the $\sqrt{252}$ rule assumes no autocorrelation (returns need not be Gaussian, only uncorrelated) and constant variance. In the notebook, volatility measured from monthly returns is 10–25% *lower* than from daily returns for most assets, because daily returns are slightly negatively autocorrelated. For a mean-reverting spread, the thing stat arb trades, the variance stops growing altogether (Module 5).
 
 </details>
 
-## Step 8. Check how fat the tails are
+## Step 9. Check how fat the tails are
 
-Standardise SPY's daily returns (subtract the mean, divide by the standard deviation) and compare them with a Gaussian. Two numbers summarise the shape:
+Standardise SPY's daily returns and compare them with a Gaussian. Two numbers summarise the shape:
 
 ```math
 \text{skewness} = \frac{\mathbb E[(x-\mu)^3]}{\sigma^3}, \qquad \text{excess kurtosis} = \frac{\mathbb E[(x-\mu)^4]}{\sigma^4} - 3 .
@@ -192,54 +167,30 @@ Standardise SPY's daily returns (subtract the mean, divide by the standard devia
 
 Both are 0 for a Gaussian. For our ten assets the skewness is negative (big down days are bigger than big up days) and the excess kurtosis ranges from 5 (AAPL) to 27 (CVX).
 
-**What it means:** returns have **fat tails**: extreme days are far more common than a Gaussian predicts. A Gaussian puts a 5σ day at probability $5.7 \times 10^{-7}$, about once in 7,000 years of trading; SPY had nine of them in 2010–2024 (one in August 2011, eight in spring 2020). On a QQ-plot (data quantiles against Gaussian quantiles) the points bend away from the straight line at both ends.
+**What it means:** returns have **fat tails**: extreme days are far more common than a Gaussian predicts. A Gaussian puts a 5σ day at probability $5.7 \times 10^{-7}$, about once in 7,000 years of trading; SPY had nine of them in 2010–2024.
 
 > [!WARNING]
-> A long/short book is hedged against *typical* co-movement. On extreme days correlations change and hedges break, so positions that are individually small can lose together. Gaussian risk estimates understate how often such days come by orders of magnitude.
+> A long/short book is hedged against *typical* co-movement. On extreme days correlations change and hedges break, so positions that are individually small can lose together.
 
-<details>
-<summary>The inverse cubic law, and why kurtosis estimates are unstable</summary>
+## Step 10. Go long, go short, and stay market-neutral
 
-The tails of stock returns decay roughly as a power law, $P(\lvert r\rvert \gt x) \propto x^{-\alpha}$ with $\alpha \approx 3$: the "inverse cubic law" (Gopikrishnan et al., 1998), a classic econophysics result. With $\alpha \lt 4$ the fourth moment formally diverges, so sample kurtosis is dominated by the few largest days and keeps growing as the sample grows. That is why the estimates range from 5 to 27 across similar stocks.
-
-</details>
-
-## Step 9. Go long, go short, and stay market-neutral
-
-Being **long** means owning an asset: you profit if it rises. Being **short** means borrowing it and selling it, to buy it back later: you profit if it falls. Stat arb holds both at once. To see why, measure each asset's sensitivity to the market, its **beta** (the slope of its daily return regressed on SPY's):
+Being **long** means owning an asset (you profit if it rises); being **short** means borrowing it and selling it, to buy it back later (you profit if it falls). Stat arb holds both. Measure each asset's sensitivity to the market, its **beta** (the slope of its daily return regressed on SPY's):
 
 ```python
 beta = R.cov()["SPY"] / R["SPY"].var()
 ```
 
-KO and PEP have betas near 0.6, XOM 0.88, JPM about 1.2. A position one dollar long XOM and one dollar short KO has equal dollar sizes, but its net beta is $0.88 - 0.60 = +0.28$: it still gains when the market rises.
+KO and PEP have betas near 0.6, XOM 0.88, JPM about 1.2. One dollar long XOM and one dollar short KO has equal dollar sizes, but a net beta of $0.88 - 0.60 = +0.28$: it still gains when the market rises.
 
-**What it means:** with $w_i$ the dollar weight of each position (negative for shorts):
-
-- **dollar-neutral:** $\sum_i w_i = 0$ (long and short dollars equal);
-- **beta-neutral**, or **market-neutral:** $\sum_i w_i \beta_i = 0$ (no net sensitivity to the market).
-
-They are not the same. To be beta-neutral here you would short about 1.47 dollars of KO per dollar of XOM. Stat arb aims for both, so that profit comes from the *relative* move of the legs, not the market's direction.
+**What it means:** with $w_i$ the dollar weight of each position (negative for shorts), a book is **dollar-neutral** if $\sum_i w_i = 0$ and **beta-neutral** (market-neutral) if $\sum_i w_i \beta_i = 0$. They are not the same: to be beta-neutral here you would short about 1.47 dollars of KO per dollar of XOM. Stat arb aims for both, so that profit comes from the *relative* move of the legs.
 
 > [!NOTE]
-> *Physics analogy:* a differential measurement. Subtracting two signals with a large common-mode component (the market) leaves the small relative signal, as in a differential amplifier. The analogy breaks down because the "common-mode gain" (beta) is estimated with error and drifts, especially in crises.
+> *Physics analogy:* a differential measurement. Subtracting two signals with a large common-mode component (the market) leaves the small relative signal. The analogy is imperfect because beta, the "common-mode gain", is estimated with error and drifts.
 
-<details>
-<summary>Short selling, alpha, the risk-free rate and excess returns</summary>
+> [!NOTE]
+> Shorting has costs and risks of its own: you pay the lender a **borrow fee** and any dividends, your loss is unbounded if the price rises, and the lender can recall the shares (Module 6).
 
-- **Short selling in practice:** you borrow shares through a broker from a lender, sell them, and later buy them back to return them. You pay the lender any dividends and a **borrow fee**; your loss is unbounded if the price rises; the lender can **recall** the shares. Costs and risks of shorting are covered in Module 8.
-- **Risk-free rate** $r_f$: the return on short-term government debt. **Excess return**: return minus $r_f$.
-- **Notional**: the dollar size of a position.
-
-**Benchmark, beta, alpha.** Regress an asset's excess return on the market's:
-
-$$R_{i,t} - r_f = \alpha_i + \beta_i (R_{m,t} - r_f) + \varepsilon_{i,t}, \qquad \beta_i = \frac{\operatorname{Cov}(R_i, R_m)}{\operatorname{Var}(R_m)} .$$
-
-The **benchmark** is the reference portfolio (the market, here SPY). **Alpha** $\alpha_i$ is the average return not explained by market exposure.
-
-</details>
-
-## Step 10. Exercises
+## Step 11. Exercises
 
 Do these in the empty cells at the end of the notebook. Your answers aren't written here.
 
@@ -268,7 +219,7 @@ Log returns telescope: $\sum_t r_t = \ln(P_T/P_0)$. Simple returns are linear in
 <details>
 <summary>Key points</summary>
 
-Close back-adjusted for splits (÷k) and dividends (×(1 − D/P)) so that ratios are total returns. Unadjusted: fake crashes on split dates, a missing dividend yield (a large share of long-run return), wrong P&L on long/short pairs where one leg pays dividends. Know your vendor: Yahoo's `Close` is already split-adjusted. Adjusted history changes after each new event, so record the download date.
+Close back-adjusted for splits (÷k) and dividends (×(1 − D/P)) so that ratios are total returns. Unadjusted: fake crashes on split dates, a missing dividend yield (a large share of long-run return), wrong P&L on long/short pairs where one leg pays dividends. Yahoo's `Close` is already split-adjusted, and adjusted history changes after each new event, so record the download date.
 
 </details>
 
@@ -277,7 +228,7 @@ Close back-adjusted for splits (÷k) and dividends (×(1 − D/P)) so that ratio
 <details>
 <summary>Key points</summary>
 
-Multiply daily σ by $\sqrt{252}$, because variances of uncorrelated returns add (diffusion). It assumes zero autocorrelation and constant variance; it does not need Gaussianity. Autocorrelation adds covariance terms (negative autocorrelation means less long-horizon variance); volatility clustering means the daily σ itself varies.
+Multiply daily σ by $\sqrt{252}$, because variances of uncorrelated returns add (diffusion). It assumes zero autocorrelation and constant variance, not Gaussianity. Autocorrelation adds covariance terms (negative autocorrelation means less long-horizon variance); volatility clustering means the daily σ itself varies.
 
 </details>
 
@@ -295,7 +246,7 @@ Market-neutral: P&L insensitive to the market's direction, i.e. net beta ≈ 0. 
 <details>
 <summary>Key points</summary>
 
-Hedges are calibrated on typical days; extreme days are far more common than Gaussian models predict (SPY: nine 5σ days in 15 years versus one expected per ~7,000 years). In crises correlations shift and hedges break, so both legs can lose together, and leverage amplifies the loss. Kurtosis estimates are themselves unstable because the tails follow a power law.
+Hedges are calibrated on typical days, and extreme days are far more common than Gaussian models predict (SPY: nine 5σ days in 15 years against one expected per ~7,000 years). In crises correlations shift and hedges break, so both legs can lose together, and leverage amplifies the loss.
 
 </details>
 
@@ -306,31 +257,24 @@ Hedges are calibrated on typical days; extreme days are far more common than Gau
 
 | Term | Meaning |
 |---|---|
-| Stock / share / equity; ticker | A unit of ownership in a company; its trading symbol (KO, SPY) |
+| Stock / share; ticker | A unit of ownership in a company; its trading symbol (KO, SPY) |
 | Bar, OHLCV | One period's open, high, low, close prices and volume |
-| Index | A rule-based basket used as a benchmark (S&P 500); not directly tradable |
-| ETF | Exchange-traded fund: a basket that trades like a single stock |
+| Bid / ask / spread | Best price to sell at / to buy at / their gap |
+| ETF; index | A basket that trades like a single stock; a rule-based benchmark basket (S&P 500) |
 | Universe | The set of assets studied or traded |
-| Bid / ask / spread / mid | Best price to sell at / to buy at / their gap / their average |
-| Liquidity | How easily you can trade without moving the price |
-| Market capitalisation | Share price × number of shares outstanding |
-| Corporate action | Company event that changes the price but not holders' wealth |
-| Stock split | Each share becomes $k$ shares at $1/k$ of the price |
+| Corporate action; stock split | Event that changes the price but not holders' wealth; $k$ shares at $1/k$ of the price |
 | Dividend / ex-dividend date | Cash paid per share / first day a buyer no longer receives it |
 | Adjusted close | Close back-adjusted for splits and dividends so its ratios are total returns |
 | Price return / total return | Return from price changes only / including dividends |
-| Simple return $R$ | $P_t/P_{t-1} - 1$; adds across assets |
-| Log return $r$ | $\ln(P_t/P_{t-1})$; adds over time |
-| Volatility | Standard deviation of returns, usually annualised |
-| Annualise | Mean × 252, volatility × $\sqrt{252}$ |
+| Simple return $R$ / log return $r$ | $P_t/P_{t-1} - 1$, adds across assets / $\ln(P_t/P_{t-1})$, adds over time |
+| Volatility; annualise | Standard deviation of returns; mean × 252, volatility × $\sqrt{252}$ |
 | Volatility drag | Compound growth falls short of the average simple return by about $\sigma^2/2$ |
 | Volatility clustering | Large moves tend to follow large moves |
-| Skewness / excess kurtosis | Third standardised moment (asymmetry) / fourth minus 3 (tail weight) |
+| Skewness / excess kurtosis | Third standardised moment / fourth minus 3 |
 | Fat tails | Extreme moves far more frequent than a Gaussian predicts |
-| Long / short | Own the asset / borrow and sell it |
-| Beta / alpha | Sensitivity to the benchmark / return not explained by it |
-| Dollar-neutral | Long and short dollars equal |
-| Market-neutral, beta-neutral | Net sensitivity to the market is zero |
+| Long / short; borrow fee | Own the asset / borrow and sell it; the cost of borrowing shares |
+| Beta | Sensitivity of an asset's return to the market's |
+| Dollar-neutral / beta-neutral | Long and short dollars equal / net market sensitivity zero |
 | Basis point (bp) | 0.01%, i.e. $10^{-4}$ |
 
 </details>
@@ -341,7 +285,5 @@ Hedges are calibrated on typical days; extreme days are far more common than Gau
 - Harris, *Trading and Exchanges* (2003), Chapters 1–4 (skim): market structure, orders, spreads.
 - Tsay, *Analysis of Financial Time Series* (3rd ed., 2010), Chapter 1: returns and their distributional properties.
 - Bouchaud & Potters, *Theory of Financial Risk and Derivative Pricing* (2nd ed., 2003), Chapter 1: fat tails.
-- Gopikrishnan, Meyer, Amaral & Stanley, "Inverse cubic law for the distribution of stock price variations", *European Physical Journal B* 3, 139 (1998).
-- Lo & MacKinlay, "Stock market prices do not follow random walks: Evidence from a simple specification test", *Review of Financial Studies* 1(1) (1988).
 
 </details>
