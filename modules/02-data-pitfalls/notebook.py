@@ -13,7 +13,7 @@
 # ---
 
 # %% [markdown]
-# # Module 2: Data pitfalls
+# # Module 1, part 2: Data pitfalls
 #
 # Most "too good to be true" backtests are data bugs. This notebook demonstrates the main ones
 # on simulated data first, where the truth is known, and then finds them in our own data:

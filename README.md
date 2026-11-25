@@ -14,27 +14,20 @@ A word on expectations: simple pairs strategies on liquid US stocks have mostly 
 
 ## Roadmap
 
-Each module's lecture notes are linked below.
+The main path has eight modules; a module's title links to its lecture notes once its folder exists on this branch. Module 1 spans two folders, so folder numbers run one ahead of module numbers from Module 2 on (`03-stats-toolkit` is Module 2).
 
-| # | Module | `statarb` code | Status |
-|---|---|---|---|
-| 0 | [Setup and tooling](modules/00-setup/lecture.md) | skeleton, `config`, CI | done |
-| 1 | [Markets, prices and returns](modules/01-returns/lecture.md) | `data`, `returns` | done |
-| 2 | [Data pitfalls: survivorship and look-ahead bias](modules/02-data-pitfalls/lecture.md) | `universe`, `checks`, `data.clean_prices` | done |
-| 3 | Statistics toolkit: random walks, stationarity, regression | `simulate`, `stats` | |
-| 4 | Distance-method pairs trading (Gatev et al. 2006) | `pairs.distance`, `signals` | |
-| 5 | Cointegration: Engle–Granger and ADF | `coint` | |
-| 6 | Ornstein–Uhlenbeck process and half-life | `ou` | |
-| 7 | Backtester and performance metrics | `backtest`, `metrics` | |
-| 8 | Honest backtesting: costs, walk-forward, multiple testing | `costs`, `validation` | |
-| 9 | Kalman filter hedge ratios | `kalman` | |
-| 10 | Johansen test and VECM baskets | `johansen` | |
-| 11 | Machine learning for pair selection | `selection`, `networks` | |
-| 12 | Factor models and random matrix theory | `factors`, `rmt` | |
-| 13 | Factor-residual stat arb (Avellaneda & Lee 2010) | `residual` | |
-| 14 | Capstone: risk, limits of arbitrage, interview prep | `risk` | |
+| # | Module | `statarb` code |
+|---|---|---|
+| 0 | [Setup and tooling](modules/00-setup/lecture.md) | skeleton, `config`, CI |
+| 1 | Prices, returns and data pitfalls ([part 1: prices and returns](modules/01-returns/lecture.md), [part 2: data pitfalls](modules/02-data-pitfalls/lecture.md)) | `data`, `returns`, `universe`, `checks` |
+| 2 | Statistics toolkit: random walks, stationarity, regression | `simulate`, `stats` |
+| 3 | Distance-method pairs trading (Gatev et al. 2006) | `pairs.distance`, `signals` |
+| 4 | Choosing pairs by clustering (PCA, k-means, hierarchical) | `selection` |
+| 5 | Cointegration and the Ornstein–Uhlenbeck half-life | `coint`, `ou` |
+| 6 | Honest backtesting: metrics, costs, walk-forward, multiple testing | `backtest`, `metrics`, `costs`, `validation` |
+| 7 | Factor-residual stat arb (Avellaneda & Lee 2010), with random-matrix cleaning | `factors`, `rmt`, `residual` |
 
-Optional extensions (regime HMMs, meta-labelling, autoencoder factors, RL thresholds, deep-learning stat arb) live in `statarb/extensions/` if and when they are done. The cumulative jargon list is in [GLOSSARY.md](GLOSSARY.md); references are in [references/references.bib](references/references.bib).
+**Optional appendix** (not required): Kalman-filter hedge ratios, Johansen baskets, hidden-Markov regimes, autoencoder factors, reinforcement-learning thresholds, and a capstone on risk and the limits of arbitrage; code for these would live in `statarb/extensions/`. The cumulative jargon list is in [GLOSSARY.md](GLOSSARY.md); references are in [references/references.bib](references/references.bib).
 
 ## Quick start
 
@@ -68,13 +61,13 @@ Every signal is checked for look-ahead with the truncation test in [`statarb.che
 
 ## Project universes
 
-Defined in [`src/statarb/universe.py`](src/statarb/universe.py) (see [Module 2](modules/02-data-pitfalls/lecture.md)):
+Defined in [`src/statarb/universe.py`](src/statarb/universe.py) (see [Module 1, part 2](modules/02-data-pitfalls/lecture.md)):
 
 | Universe | Contents | Known biases | Used in |
 |---|---|---|---|
-| **U1** | SPY, the 11 sector ETFs, classic pairs (KO/PEP, XOM/CVX, EWA/EWC, GLD/GDX, V/MA, HD/LOW) | Low survivorship risk; XLRE (2015) and XLC (2018) have short histories | Modules 4–10 |
-| **U2** | `LARGE_CAP_100`: 100 large S&P 500 members as of November 2026 | Survivorship-biased by construction: chosen because they are large today | Modules 5, 11 |
-| **U3** | Current S&P 500 plus sector ETFs, optionally filtered by point-in-time membership | Delisted members largely missing from Yahoo | Modules 11–13 |
+| **U1** | SPY, the 11 sector ETFs, classic pairs (KO/PEP, XOM/CVX, EWA/EWC, GLD/GDX, V/MA, HD/LOW) | Low survivorship risk; XLRE (2015) and XLC (2018) have short histories | Modules 3 and 5 |
+| **U2** | `LARGE_CAP_100`: 100 large S&P 500 members as of November 2026 | Survivorship-biased by construction: chosen because they are large today | Modules 3, 4 and 5 |
+| **U3** | Current S&P 500 plus sector ETFs, optionally filtered by point-in-time membership | Delisted members largely missing from Yahoo | Module 7 |
 
 ## Known data limitations
 
