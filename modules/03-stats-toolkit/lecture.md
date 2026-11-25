@@ -20,7 +20,9 @@ Let $\varepsilon_t$ be independent random shocks with mean 0 and variance $\sigm
 AR(1) is "autoregressive of order 1": each value remembers a fraction $\phi$ of the previous one. In the random walk, $\mu$ is the **drift**, a steady trend added each step.
 
 ```python
-simulate.white_noise(500); simulate.ar1(500, phi=0.9); simulate.random_walk(500)
+simulate.white_noise(500)
+simulate.ar1(500, phi=0.9)
+simulate.random_walk(500)
 stats.acf(x, nlags=40)
 ```
 
