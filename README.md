@@ -31,7 +31,7 @@ The main path has eight modules; a module's title links to its lecture notes onc
 | 1 | Prices, returns and data pitfalls ([part 1: prices and returns](modules/01-returns/lecture.md), [part 2: data pitfalls](modules/02-data-pitfalls/lecture.md)) | `data`, `returns`, `universe`, `checks` |
 | 2 | [Statistics toolkit: random walks, stationarity, regression](modules/03-stats-toolkit/lecture.md) | `simulate`, `stats` |
 | 3 | [Distance-method pairs trading (Gatev et al. 2006)](modules/04-distance-pairs/lecture.md) | `pairs.distance`, `signals` |
-| 4 | Choosing pairs by clustering (PCA, k-means, hierarchical) | `selection` |
+| 4 | [Choosing pairs by clustering (PCA, k-means, hierarchical)](modules/05-clustering/lecture.md) | `selection` |
 | 5 | Cointegration and the Ornstein–Uhlenbeck half-life | `coint`, `ou` |
 | 6 | Honest backtesting: metrics, costs, walk-forward, multiple testing | `backtest`, `metrics`, `costs`, `validation` |
 | 7 | Factor-residual stat arb (Avellaneda & Lee 2010), with random-matrix cleaning | `factors`, `rmt`, `residual` |
