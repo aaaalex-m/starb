@@ -1,4 +1,4 @@
-# Module 4 — Distance-method pairs trading
+# Module 3 — Distance-method pairs trading
 
 This is the canonical academic pairs strategy (Gatev, Goetzmann and Rouwenhorst, 2006; "GGR") and the benchmark every later method is compared against. It needs no econometrics: put prices on a common scale, pair up the stocks whose prices stayed closest, and bet that a pair which drifts apart will come back together. You build it step by step, check it on simulated data where it must work, then run it on twenty years of real prices, before costs. The result is close to zero, and seeing why is the main lesson.
 
@@ -98,9 +98,7 @@ Every open position is closed at the end of the trading period, converged or not
 <details>
 <summary>The state machine exactly, and why it is causal</summary>
 
-At most one transition happens per day: a position closed on day $t$ can reopen on day $t+1$ at the earliest, even if the spread jumped straight through zero to the other side. A missing spread (a leg with no price) closes the position. The rule looks only at past and present values of $z$, so it passes the truncation test from Module 2, and the test suite checks this (`tests/test_signals.py`).
-
-The general rule `threshold_positions(z, entry, exit)` closes shorts at $z \le e$ and longs at $z \ge -e$, where $e$ is the exit level. Module 6 adds stop-losses and time limits to it.
+At most one transition happens per day, so a position closed on day $t$ can reopen on day $t+1$ at the earliest; a missing spread closes the position. The rule looks only at past and present values of $z$, so it passes Module 1's truncation test (`tests/test_signals.py`). Module 5 adds stop-losses and time limits to it.
 
 </details>
 
@@ -120,18 +118,7 @@ With 20 pairs there are two ways to state the strategy's return, both from GGR:
 **What it means:** committed capital is the conservative, investable number; employed capital shows what an open trade earns. Here on average 9.5 of the 20 pairs are open, so the two differ by roughly a factor of two.
 
 > [!WARNING]
-> This P&L is deliberately naive: no **transaction costs** (the bid–ask spread, commissions), no **borrow fee** for the short leg, and the legs are rebalanced to one dollar each every day. Module 7 replaces it with a proper backtester and Module 8 adds costs. Every number in this module is therefore an upper bound.
-
-<details>
-<summary>Details of the P&L: dollar neutrality, GGR's version, and the timing convention</summary>
-
-One dollar long and one dollar short makes each pair **dollar-neutral** (Module 1), but not necessarily beta-neutral: XLF against BAC, for instance, has different market sensitivities.
-
-GGR hold the legs buy-and-hold during a trade (the dollar amounts drift with prices) and compute excess returns on committed and employed capital per six-month period. Rebalancing daily, as here, changes the numbers a little but not the conclusions, and keeps the code transparent.
-
-Timing: `pair_returns(position, Ra, Rb, lag=1)` multiplies the position decided at day $t$'s close by day $t+1$'s return. `lag=2` waits a full day before trading (Step 10).
-
-</details>
+> This P&L is deliberately naive: no **transaction costs** (the bid–ask spread, commissions), no **borrow fee** for the short leg, and the legs are rebalanced to one dollar each every day. Module 6 replaces it with a proper backtester and adds costs. Every number in this module is therefore an upper bound.
 
 ## Step 7. Check it on a simulated pair first
 
@@ -167,7 +154,7 @@ Every six months: select the 20 closest pairs on the previous twelve months, tra
 | 2015–2019 | +1.2% | 0.39 |
 | 2020–2025 | +1.3% | 0.27 |
 
-**What it means:** on this universe the distance method earns essentially nothing before costs over twenty years. It lost money through the financial crisis and the early 2010s and made a little since 2015, and every sub-period's Sharpe ratio is small. The **Sharpe ratio** (annual return over annual volatility; Module 7) is a rough signal-to-noise ratio, and none of these values is clearly distinguishable from zero.
+**What it means:** on this universe the distance method earns essentially nothing before costs over twenty years. It lost money through the financial crisis and the early 2010s and made a little since 2015, and every sub-period's Sharpe ratio is small. The **Sharpe ratio** (annual return over annual volatility; Module 6) is a rough signal-to-noise ratio, and none of these values is clearly distinguishable from zero.
 
 ## Step 9. See how trades end
 
@@ -197,32 +184,31 @@ The signal uses a closing price, and a closing trade happens at either the bid o
 
 The distance method on this universe makes roughly zero *before* costs, so it loses money after them. That is consistent with the literature: Do and Faff (2010) found that the method's profits fell sharply after the 1990s, and pairs trading on liquid US stocks has mostly stopped paying since the 2000s. Three reasons visible in this module:
 
-1. **Selection by closeness, not by reversion.** SSD can't tell a genuine pair from an impostor (Steps 2 and 9).
+1. **Selection by closeness, not by reversion.** SSD can't tell a genuine pair from an impostor (Steps 2 and 9). Module 4 chooses candidates by clustering instead, and Module 5 tests for reversion directly.
 2. **Small spreads.** The closest pairs barely move apart, so even converged trades earn only a few percent.
 3. **Competition.** A strategy published in 1999 (working paper) and 2006 (journal) is crowded by everyone who read it.
 
 > [!WARNING]
-> Every choice made here (12 and 6 months, 20 pairs, 2σ, this universe) is a degree of freedom. Trying variants and keeping the best one is **data snooping**: the best of many backtests looks good by chance. Exercise 1 is your first encounter with it; Module 8 corrects for it.
+> Every choice made here (12 and 6 months, 20 pairs, 2σ, this universe) is a degree of freedom. Trying variants and keeping the best one is **data snooping**: the best of many backtests looks good by chance. Exercise 1 is your first encounter with it; Module 6 corrects for it.
 
 > [!NOTE]
-> **Interview checkpoint 1.** You should now be able to give a 2-minute and a 10-minute explanation of the project so far: data and its pitfalls (Modules 1–2), why stationarity matters (Module 3), and this strategy with its honest result.
+> **Interview checkpoint 1.** You should now be able to give a 2-minute and a 10-minute explanation of the project so far: data and its pitfalls (Module 1), why stationarity matters (Module 2), and this strategy with its honest result.
 
 <details>
 <summary>Why pairs could work at all: the Law of One Price, liquidity provision, and differential measurement</summary>
 
 - **Law of One Price:** close substitutes should trade at similar prices. If Coca-Cola and PepsiCo face the same economic shocks, a large gap between their returns is more likely to be temporary news or order flow than a permanent change.
-- **Who is on the other side?** Mostly traders who need to buy or sell quickly and push one price away from its partner. The pairs trader provides **liquidity** (Module 1) and is paid for it when the gap closes. That payment shrinks as more traders compete to provide it.
+- **Who is on the other side?** Mostly traders who need to buy or sell quickly and push one price away from its partner. The pairs trader provides **liquidity** (lets others trade quickly without waiting for a counterparty) and is paid for it when the gap closes. That payment shrinks as more traders compete to provide it.
 - **Statistical arbitrage vs arbitrage:** true **arbitrage** is a riskless profit from a price inconsistency. **Statistical arbitrage** is many small bets that are favourable only on average; any single pair can diverge forever (a merger, a bankruptcy, a change of business model).
-- *Physics analogy:* differential measurement. Subtracting two signals with a large common-mode component (the market and the sector) leaves the small relative signal, as in a differential amplifier or a Wheatstone bridge.
 
 </details>
 
 <details>
 <summary>What GGR found, and how this version differs</summary>
 
-GGR used all liquid US stocks from 1962 to 2002 (the CRSP database), formed pairs on 12 months and traded them for 6, started a new portfolio every month (six overlapping portfolios at any time), and waited one day before trading. Their top-20 pairs earned average annualised excess returns of up to about 11% before costs, and they showed the profits were not explained by standard risk factors or by bid–ask bounce alone.
+GGR used all liquid US stocks from 1962 to 2002, started a new portfolio every month (six overlapping portfolios at any time), held each trade's legs buy-and-hold, and waited one day before trading. Their top-20 pairs earned average annualised excess returns of up to about 11% before costs.
 
-This module differs in four ways: a small universe dominated by ETFs; 2005–2025 instead of 1962–2002; non-overlapping six-month periods; and daily-rebalanced legs. The broad lessons (the race between convergence and divergence, the decline over time) are the same as in the later literature (Do and Faff, 2010; Krauss, 2017).
+This version uses a small, ETF-heavy universe over 2005–2025, non-overlapping six-month periods and daily-rebalanced legs. The broad lessons (the race between convergence and divergence, the decline over time) match the later literature (Do and Faff, 2010; Krauss, 2017).
 
 </details>
 
@@ -230,7 +216,7 @@ This module differs in four ways: a small universe dominated by ETFs; 2005–202
 
 Do these in the empty cells at the end of the notebook. Your answers aren't written here.
 
-1. **Thresholds.** Vary the entry threshold (1, 1.5, 2, 3σ) and count the trades and the average return per trade. Note that this is your first data-snooping risk (it gets formalised in Module 8).
+1. **Thresholds.** Vary the entry threshold (1, 1.5, 2, 3σ) and count the trades and the average return per trade. Note that this is your first data-snooping risk (it gets formalised in Module 6).
 2. **Same sector only.** Restrict pairs to the same sector, against allowing any pair. Which works better, and why might that be?
 3. **What SSD rewards.** Explain in words why minimising SSD selects pairs with *low spread variance*, which may limit the profit per trade. (This is a known critique.)
 
@@ -255,7 +241,7 @@ Formation (12 months): normalise adjusted prices to start at 1, compute the SSD 
 <details>
 <summary>Key points</summary>
 
-SSD measures past closeness, not a restoring force. Two stocks driven by the same trend plus independent random drift can stay close for a year by chance and then drift apart for good; nothing in SSD tests whether the spread is stationary. In our backtest only 32% of trades converged within six months. Cointegration (Module 5) and the half-life of mean reversion (Module 6) address this. SSD also favours pairs whose spread barely moves, which limits the profit per trade.
+SSD measures past closeness, not a restoring force. Two stocks driven by the same trend plus independent random drift can stay close for a year by chance and then drift apart for good; nothing in SSD tests whether the spread is stationary. In our backtest only 32% of trades converged within six months. Cointegration and the half-life of mean reversion (Module 5) address this. SSD also favours pairs whose spread barely moves, which limits the profit per trade.
 
 </details>
 
@@ -307,7 +293,7 @@ Competition and publication (more capital chasing the same convergence, faster a
 | Return on committed / employed capital | Average over all selected pairs / over pairs with an open position |
 | Bid–ask bounce | Closing prices alternating between bid and ask, which fakes mean reversion |
 | Data snooping | Picking the best of many tried variants, so the result looks good by chance |
-| Transaction costs, borrow fee | Costs of trading / of borrowing shares to short (Module 8) |
+| Transaction costs, borrow fee | Costs of trading / of borrowing shares to short (Module 6) |
 
 </details>
 

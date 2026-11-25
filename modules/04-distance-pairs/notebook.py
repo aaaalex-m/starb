@@ -13,7 +13,7 @@
 # ---
 
 # %% [markdown]
-# # Module 4: Distance-method pairs trading (Gatev, Goetzmann & Rouwenhorst 2006)
+# # Module 3: Distance-method pairs trading (Gatev, Goetzmann & Rouwenhorst 2006)
 #
 # The canonical academic pairs strategy, and the benchmark every later method is compared
 # against. It needs no econometrics: rescale prices to start at 1, pair up the stocks whose
@@ -349,7 +349,7 @@ pd.DataFrame(
 #
 # 1. **Thresholds.** Vary the entry threshold (1, 1.5, 2, 3σ) and count the trades and the
 #    average return per trade. Note that this is your first data-snooping risk: every
-#    variant you try and keep is a hidden extra test (formalised in Module 8).
+#    variant you try and keep is a hidden extra test (formalised in Module 6).
 # 2. **Same sector only.** Restrict pairs to the same sector, against allowing any pair.
 #    Which works better here, and why might that be?
 # 3. **What SSD rewards.** Explain in words why minimising SSD selects pairs with *low

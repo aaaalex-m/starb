@@ -8,7 +8,7 @@ r"""Distance-method pairs trading (Gatev, Goetzmann & Rouwenhorst, 2006; "GGR").
    formation-period standard deviations, and close when it crosses zero or the period ends.
 
 Prices should be adjusted closes (total-return indices). The P&L here is deliberately naive
-(daily-rebalanced legs, no costs); Module 7 replaces it with a proper backtester.
+(daily-rebalanced legs, no costs); Module 6 replaces it with a proper backtester.
 """
 
 from dataclasses import dataclass
