@@ -13,7 +13,7 @@
 # ---
 
 # %% [markdown]
-# # Module 1: Markets, prices and returns
+# # Module 1, part 1: Prices and returns
 #
 # Everything later in the project works with **returns**, not prices. This notebook builds
 # the data layer (`statarb.data`) and the return toolkit (`statarb.returns`), and uses them
@@ -200,7 +200,7 @@ growth.style.format("{:.0%}")
 # $$R_t = \frac{P_t}{P_{t-1}} - 1, \qquad r_t = \ln\frac{P_t}{P_{t-1}} = \ln(1 + R_t).$$
 #
 # Taylor-expanding, $r = R - R^2/2 + R^3/3 - \dots$, so the two agree to first order and
-# $r < R$ always (for $R \neq 0$).
+# $r \lt R$ always (for $R \neq 0$).
 
 # %%
 R = returns.simple_returns(prices)
@@ -238,7 +238,7 @@ fig.tight_layout()
 #
 # **Which to use when.** Log returns add over *time*; simple returns add across *assets*:
 #
-# $$\ln\frac{P_T}{P_0} = \sum_{t=1}^{T} r_t, \qquad R^{\text{portfolio}}_t = \sum_i w_i R_{i,t}.$$
+# $$\ln\frac{P_T}{P_0} = \sum_{t=1}^{T} r_t, \qquad R_t^{\text{portfolio}} = \sum_i w_i R_{i,t}.$$
 #
 # Check both on the data. First, time aggregation for SPY:
 
@@ -304,9 +304,9 @@ fig.tight_layout()
 # Volatility spends long stretches near 10–15% and then jumps: May 2010 (the "flash
 # crash"), August–October 2011 (US credit downgrade), August 2015, December 2018, March–April
 # 2020 (COVID, above 90%) and 2022. Turbulent days cluster together. This **volatility
-# clustering** returns in Module 3.
+# clustering** returns in Module 2.
 #
-# ### 4c. Does volatility scale like $\sqrt{T}$?
+# ### 4c. Does volatility scale like the square root of time?
 #
 # If daily returns are uncorrelated, the variance of a $T$-day return is $T$ times the daily
 # variance, exactly as in diffusion where $\langle x^2 \rangle = 2Dt$. Then annualising

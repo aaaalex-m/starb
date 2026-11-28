@@ -19,6 +19,8 @@ jobs:
         run: uv run ruff check
       - name: Format check
         run: uv run ruff format --check
+      - name: Maths in Markdown renders on GitHub
+        run: uv run python scripts/check_math.py
       - name: Notebooks in sync with their paired .py files
         run: |
           for nb in modules/*/notebook.ipynb; do
